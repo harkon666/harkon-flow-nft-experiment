@@ -1,0 +1,119 @@
+import "Burner"
+import "NonFungibleToken"
+
+import "RandomConsumer"
+import "NFTAccessory"
+
+/// CoinToss is a simple game contract showcasing the safe use of onchain randomness by way of a commit-reveal sheme.
+///
+/// See FLIP 123 for more details: https://github.com/onflow/flips/blob/main/protocol/20230728-commit-reveal.md
+/// And the onflow/random-coin-toss repo for implementation context: https://github.com/onflow/random-coin-toss
+///
+/// NOTE: This contract is for demonstration purposes only and is not intended to be used in a production environment.
+///
+access(all) contract AccessoryPack {
+    /// The RandomConsumer.Consumer resource used to request & fulfill randomness
+    access(self) let consumer: @RandomConsumer.Consumer
+
+    /// The canonical path for common Receipt storage
+    /// Note: production systems would consider handling path collisions
+    access(all) let ReceiptStoragePath: StoragePath
+
+    /* --- Events --- */
+    //
+    access(all) event AccessoryPackOpened(commitBlock: UInt64, receiptID: UInt64)
+    access(all) event AccessoryPackRevealed(rarity: UInt8, commitBlock: UInt64, receiptID: UInt64)
+
+    /// The Receipt resource is used to store the bet amount and the associated randomness request. By listing the
+    /// RandomConsumer.RequestWrapper conformance, this resource inherits all the default implementations of the
+    /// interface. This is why the Receipt resource has access to the getRequestBlock() and popRequest() functions
+    /// without explicitly defining them.
+    ///
+    access(all) resource Receipt : RandomConsumer.RequestWrapper {
+        /// The amount bet by the user
+        /// The associated randomness request which contains the block height at which the request was made
+        /// and whether the request has been fulfilled.
+        access(all) var request: @RandomConsumer.Request?
+
+        init(request: @RandomConsumer.Request) {
+            self.request <- request
+        }
+    }
+
+    /* --- Commit --- */
+    //
+    /// In this method, the caller commits a bet. The contract takes note of the block height and bet amount, returning a
+    /// Receipt resource which is used by the better to reveal the coin toss result and determine their winnings.
+    ///
+    access(all) fun RequestGacha(): @Receipt {
+        let request <- self.consumer.requestRandomness()
+        let receipt <- create Receipt(request: <-request)
+
+        emit AccessoryPackOpened(commitBlock: receipt.getRequestBlock()!, receiptID: receipt.uuid)
+
+        return <- receipt
+    }
+
+    /* --- Reveal --- */
+    //
+    /// Here the caller provides the Receipt given to them at commitment. The contract then "flips a coin" with
+    /// _randomCoin(), providing the Receipt's contained Request.
+    ///
+    /// If result is 1, user loses, but if it's 0 the user doubles their bet. Note that the caller could condition the
+    /// revealing transaction, but they've already provided their bet amount so there's no loss for the contract if
+    /// they do.
+    ///
+    access(all) fun RevealGacha(receipt: @Receipt): UInt8 {
+        pre {
+            receipt.request != nil: 
+            "CoinToss.revealCoin: Cannot reveal the coin! The provided receipt has already been revealed."
+            receipt.getRequestBlock()! <= getCurrentBlock().height:
+            "CoinToss.revealCoin: Cannot reveal the coin! The provided receipt was committed for block height ".concat(receipt.getRequestBlock()!.toString())
+            .concat(" which is greater than the current block height of ")
+            .concat(getCurrentBlock().height.toString())
+            .concat(". The reveal can only happen after the committed block has passed.")
+        }
+        let commitBlock = receipt.getRequestBlock()!
+        let receiptID = receipt.uuid
+
+        let randomNumber = self._randomNumber(request: <-receipt.popRequest())
+        Burner.burn(<-receipt)
+        
+        emit AccessoryPackRevealed(rarity: randomNumber, commitBlock: commitBlock, receiptID: receiptID)
+        return randomNumber
+    }
+
+    //gacha accessory send to receiver
+    access(all) fun distributeAccessory(_ randomNumber:UInt8, recipient: &{NonFungibleToken.Receiver}) {
+      let minterRef = self.account.storage.borrow<&NFTAccessory.NFTMinter>(from: NFTAccessory.MinterStoragePath)
+        ?? panic("No Minter resource in storage")
+        if randomNumber == 1 {
+          let mintedNFT<- minterRef.mintNFT(name: "Bingkai Emas", description: "emas banget", thumbnail: "bingkai.png", equipmentType: "bingkai", score: UFix64(randomNumber), max: 100.0, descriptionRarity: "Super Rare")
+          recipient.deposit(token: <-mintedNFT)
+        } else if randomNumber > 1 && randomNumber < 11 {
+          let mintedNFT <- minterRef.mintNFT(name: "Bingkai Perak", description: "Perak banget", thumbnail: "bingkai.png", equipmentType: "bingkai", score: UFix64(randomNumber), max: 100.0, descriptionRarity: "Rare")
+          recipient.deposit(token: <-mintedNFT)
+        } else {
+          let mintedNFT <- minterRef.mintNFT(name: "Bingkai Kayu", description: "Kayu banget", thumbnail: "bingkai.png", equipmentType: "bingkai", score: UFix64(randomNumber), max: 100.0, descriptionRarity: "Common")
+          recipient.deposit(token: <-mintedNFT)
+        }
+    }
+
+    /// Returns a random number between 0 and 1 using the RandomConsumer.Consumer resource contained in the contract.
+    /// For the purposes of this contract, a simple modulo operation could have been used though this is not the case
+    /// for all ranges. Using the Consumer.fulfillRandomInRange function ensures that we can get a random number
+    /// within any range without a risk of bias.
+    ///
+    access(self) fun _randomNumber(request: @RandomConsumer.Request): UInt8 {
+        return UInt8(self.consumer.fulfillRandomInRange(request: <-request, min: 1, max: 100))
+    }
+
+    init() {
+        // Create a RandomConsumer.Consumer resource
+        self.consumer <-RandomConsumer.createConsumer()
+
+        // Set the ReceiptStoragePath to a unique path for this contract - appending the address to the identifier
+        // prevents storage collisions with other objects in user's storage
+        self.ReceiptStoragePath = StoragePath(identifier: "AccessoryPack_".concat(self.account.address.toString()))!
+    }
+}
