@@ -29,9 +29,27 @@
 				"testnet": "9a0766d93b6608b7"
 			}
 		},
+		"FlowToken": {
+			"source": "testnet://7e60df042a9c0868.FlowToken",
+			"hash": "a7b219cf8596c1116aa219bb31535faa79ebf5e02d16fa594acd0398057674e1",
+			"aliases": {
+				"emulator": "0ae53cb6e3f42a79",
+				"mainnet": "1654653399040a61",
+				"testnet": "7e60df042a9c0868"
+			}
+		},
 		"FungibleToken": {
 			"source": "testnet://9a0766d93b6608b7.FungibleToken",
 			"hash": "d84e41a86bd27806367b89c75a2a9570f7713480ab113cc214c4576466888958",
+			"aliases": {
+				"emulator": "ee82856bf20e2aa6",
+				"mainnet": "f233dcee88fe0abe",
+				"testnet": "9a0766d93b6608b7"
+			}
+		},
+		"FungibleTokenMetadataViews": {
+			"source": "testnet://9a0766d93b6608b7.FungibleTokenMetadataViews",
+			"hash": "085d02742eb50e6200cf2a4ad4551857313513afa7205c1e85f5966547a56df3",
 			"aliases": {
 				"emulator": "ee82856bf20e2aa6",
 				"mainnet": "f233dcee88fe0abe",
@@ -45,6 +63,13 @@
 				"emulator": "f8d6e0586b0a20c7",
 				"mainnet": "1d7e57aa55817448",
 				"testnet": "631e88ae7f1d7c20"
+			}
+		},
+		"NFTStorefrontV2": {
+			"source": "testnet://2d55b98eb200daef.NFTStorefrontV2",
+			"hash": "c3e5da9b36f8b830d15ebbde6fb1c4ad1b903ad818030da75f004c8a31503586",
+			"aliases": {
+				"testnet": "2d55b98eb200daef"
 			}
 		},
 		"NonFungibleToken": {
@@ -96,6 +121,10 @@
 		"testnet": "access.devnet.nodes.onflow.org:9000"
 	},
 	"accounts": {
+		"a": {
+			"address": "179b6b1cb6755e31",
+			"key": "bf5f63ecd9f3d8078bb37bb0e60f94c28d2b367c1d1e2957b5079dab660734bb"
+		},
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
 			"key": {
@@ -117,7 +146,10 @@
 				"NFTAccessory",
 				"RandomBeaconHistory",
 				"AccessoryPack",
-				"NFTMoment"
+				"NFTMoment",
+				"NFTStorefrontV2",
+				"FungibleTokenMetadataViews",
+				"FlowToken"
 			]
 		}
 	}
