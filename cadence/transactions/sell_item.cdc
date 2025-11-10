@@ -39,7 +39,7 @@ transaction(
         if acct.storage.borrow<&NFTStorefrontV2.Storefront>(from: NFTStorefrontV2.StorefrontStoragePath) == nil {
 
             // Create a new empty Storefront
-            let storefront <- NFTStorefrontV2.createStorefront() as! @NFTStorefrontV2.Storefront
+            let storefront <- NFTStorefrontV2.createStorefront()
             
             // save it to the account
             acct.storage.save(<-storefront, to: NFTStorefrontV2.StorefrontStoragePath)
