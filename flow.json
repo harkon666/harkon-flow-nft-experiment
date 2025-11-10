@@ -148,8 +148,7 @@
 				"AccessoryPack",
 				"NFTMoment",
 				"NFTStorefrontV2",
-				"FungibleTokenMetadataViews",
-				"FlowToken"
+				"FungibleTokenMetadataViews"
 			]
 		}
 	}
