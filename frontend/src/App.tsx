@@ -1,5 +1,11 @@
 import { useState } from 'react';
 import { Wallet, Package, ShoppingCart, Check, X } from 'lucide-react';
+import {
+  useFlowCurrentUser,
+} from '@onflow/react-sdk'
+import ButtonConnect from './components/ButtonConnect';
+import InventorySection from './components/sections/InventorySection';
+import YourSalesSection from './components/sections/YourSalesSection';
 
 interface AccessoryListing {
   id: number;
@@ -48,9 +54,7 @@ function App() {
     { id: 6, name: 'Stempel VIP', price: '2.5', image: '💎' },
   ];
 
-  const handleConnectWallet = () => {
-    setIsConnected(!isConnected);
-  };
+  const { user, authenticate, unauthenticate } = useFlowCurrentUser();
 
   const handleBuyGacha = () => {
     setIsShaking(true);
@@ -207,22 +211,35 @@ function App() {
           object-fit: cover;
           image-rendering: pixelated;
         }
+
+        .modal-open .scan-line::before {
+          animation: none;
+        }
+
+        .modal-open .pixel-card:hover {
+          transform: none;
+          box-shadow: none;
+        }
       `}</style>
 
       <div className="scan-line">
         <header className="border-b-4 border-green-500 bg-black sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 className="text-green-500 text-xl glow">Harkon-NFT</h1>
-            <button
-              onClick={handleConnectWallet}
+            <div className="flex gap-8">
+              <a className="text-green-500 text-xl glow">Harkon-NFT-Eksperimen</a>
+              <a className="text-green-500 text-xl glow">My Inventory</a>
+            </div>
+            <ButtonConnect />
+            {/* <button
+              onClick={authenticate}
               className="pixel-button flex items-center gap-2"
             >
               <Wallet size={16} />
               {isConnected ? '[ Connected ]' : '[ Connect Wallet ]'}
-            </button>
+            </button> */}
           </div>
         </header>
-
+        
         <section className="container mx-auto px-4 py-16 text-center">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-3xl text-green-500 mb-8 glow">Welcome to Harkon-NFT</h2>
@@ -233,6 +250,8 @@ function App() {
             </p>
           </div>
         </section>
+        
+        <InventorySection />
 
         <section className="container mx-auto px-4 py-16">
           <h2 className="text-2xl text-green-500 text-center mb-12 glow">Mint Your Moment</h2>
@@ -274,6 +293,8 @@ function App() {
           </div>
         </section>
 
+        <YourSalesSection />
+
         <section className="container mx-auto px-4 py-16">
           <h2 className="text-2xl text-green-500 text-center mb-12 glow">Accessory Marketplace</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -291,33 +312,6 @@ function App() {
               </div>
             ))}
           </div>
-        </section>
-
-        <section className="container mx-auto px-4 py-16">
-          <h2 className="text-2xl text-green-500 text-center mb-12 glow">Your NFT Accessories</h2>
-          {ownedAccessories.length === 0 ? (
-            <div className="max-w-md mx-auto text-center pixel-card">
-              <p className="text-green-300">No accessories yet. Buy a Gacha Pack to get started!</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {ownedAccessories.map((accessory) => (
-                <div key={accessory.id} className="pixel-card">
-                  <div className="w-full aspect-square bg-gray-900 border-2 border-green-500 mb-4 flex items-center justify-center">
-                    <div className="text-6xl">{accessory.image}</div>
-                  </div>
-                  <h3 className="text-green-400 text-sm mb-3 pixel-text">{accessory.name}</h3>
-                  <p className="text-green-300 mb-4">Qty: <span className="glow">{accessory.quantity}</span></p>
-                  <button
-                    onClick={() => setSelectedAccessoryToEquip(accessory.id)}
-                    className={`pixel-button w-full text-xs ${selectedAccessoryToEquip === accessory.id ? 'bg-black text-green-500' : ''}`}
-                  >
-                    {selectedAccessoryToEquip === accessory.id ? '[ SELECTED ]' : '[ SELECT ]'}
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
         </section>
 
         <section className="container mx-auto px-4 py-16 bg-gradient-to-b from-black to-gray-900">

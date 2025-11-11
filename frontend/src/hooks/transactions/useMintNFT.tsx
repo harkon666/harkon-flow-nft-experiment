@@ -74,7 +74,7 @@ export function useMintNFT(): UseMintNFTReturn {
   return {
     mint,
     txId: txId || null,
-    isPending: isMutating || isStatusPending,
+    isPending: isMutating,
     error: txError || txStatusError || null,
     status: transactionStatus?.status,
     isSealed: transactionStatus?.status === 4,
