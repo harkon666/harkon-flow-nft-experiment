@@ -1,15 +1,15 @@
 /// Script to get NFT IDs in an account's collection
 
 import "NonFungibleToken"
-import "NFTAccessory"
+import "NFTMoment"
 
 access(all) fun main(address: Address): [UInt64] {
     let account = getAccount(address)
 
     let collectionRef = account.capabilities.borrow<&{NonFungibleToken.Collection}>(
-            NFTAccessory.CollectionPublicPath
+            NFTMoment.CollectionPublicPath
     ) ?? panic("The account ".concat(address.toString()).concat(" does not have a NonFungibleToken Collection at ")
-                .concat(NFTAccessory.CollectionPublicPath.toString())
+                .concat(NFTMoment.CollectionPublicPath.toString())
                 .concat(". The account must initialize their account with this collection first!"))
 
     return collectionRef.getIDs()

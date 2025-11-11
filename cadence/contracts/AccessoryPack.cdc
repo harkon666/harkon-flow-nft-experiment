@@ -23,6 +23,7 @@ access(all) contract AccessoryPack {
     //
     access(all) event AccessoryPackOpened(commitBlock: UInt64, receiptID: UInt64)
     access(all) event AccessoryPackRevealed(rarity: UInt8, commitBlock: UInt64, receiptID: UInt64)
+    access(all) event AccessoryDistributed(recipient: Address, id: UInt64, name: String, description: String, thumbnail: String, equipmentType: String)
 
     /// The Receipt resource is used to store the bet amount and the associated randomness request. By listing the
     /// RandomConsumer.RequestWrapper conformance, this resource inherits all the default implementations of the
@@ -87,16 +88,44 @@ access(all) contract AccessoryPack {
     access(all) fun distributeAccessory(_ randomNumber:UInt8, recipient: &{NonFungibleToken.Receiver}) {
       let minterRef = self.account.storage.borrow<&NFTAccessory.NFTMinter>(from: NFTAccessory.MinterStoragePath)
         ?? panic("No Minter resource in storage")
-        if randomNumber == 1 {
-          let mintedNFT<- minterRef.mintNFT(name: "Bingkai Emas", description: "emas banget", thumbnail: "bingkai.png", equipmentType: "bingkai", score: UFix64(randomNumber), max: 100.0, descriptionRarity: "Super Rare")
-          recipient.deposit(token: <-mintedNFT)
-        } else if randomNumber > 1 && randomNumber < 11 {
-          let mintedNFT <- minterRef.mintNFT(name: "Bingkai Perak", description: "Perak banget", thumbnail: "bingkai.png", equipmentType: "bingkai", score: UFix64(randomNumber), max: 100.0, descriptionRarity: "Rare")
-          recipient.deposit(token: <-mintedNFT)
-        } else {
-          let mintedNFT <- minterRef.mintNFT(name: "Bingkai Kayu", description: "Kayu banget", thumbnail: "bingkai.png", equipmentType: "bingkai", score: UFix64(randomNumber), max: 100.0, descriptionRarity: "Common")
-          recipient.deposit(token: <-mintedNFT)
-        }
+      var name: String = ""
+      var description: String = ""
+      var descriptionRarity: String = ""
+      if randomNumber == 1 {
+          name = "Bingkai Emas"
+          description = "emas banget"
+          descriptionRarity = "Super Rare"
+      } else if randomNumber > 1 && randomNumber < 11 {
+          name = "Bingkai Perak"
+          description = "Perak banget"
+          descriptionRarity = "Rare"
+      } else {
+          name = "Bingkai Kayu"
+          description = "Kayu banget"
+          descriptionRarity = "Common"
+      }
+
+      let mintedNFT <- minterRef.mintNFT(
+          name: name,
+          description: description,
+          thumbnail: "bingkai.png", // Ini selalu sama
+          equipmentType: "bingkai",   // Ini selalu sama
+          score: UFix64(randomNumber),
+          max: 100.0,
+          descriptionRarity: descriptionRarity
+      )
+
+      emit AccessoryPack.AccessoryDistributed(
+          recipient: recipient.owner!.address,
+          id: mintedNFT.id,
+          name: mintedNFT.name,
+          description: mintedNFT.description,
+          thumbnail: mintedNFT.thumbnail,
+          equipmentType: mintedNFT.equipmentType
+      )
+
+      //what should i do? do i need to make it the same as how NFTMoment minted nft?
+      recipient.deposit(token: <-mintedNFT)
     }
 
     /// Returns a random number between 0 and 1 using the RandomConsumer.Consumer resource contained in the contract.

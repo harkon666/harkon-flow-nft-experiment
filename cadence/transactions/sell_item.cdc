@@ -3,6 +3,7 @@ import "FungibleTokenMetadataViews"
 import "NonFungibleToken"
 import "MetadataViews"
 import "NFTStorefrontV2"
+import "NFTAccessory"
 /// Transaction used to facilitate the creation of the listing under the signer's owned storefront resource.
 /// It accepts the certain details from the signer,i.e. - 
 ///
@@ -31,6 +32,7 @@ transaction(
     let storefront: auth(NFTStorefrontV2.CreateListing) &NFTStorefrontV2.Storefront
     var saleCuts: [NFTStorefrontV2.SaleCut]
     var marketplacesCapability: [Capability<&{FungibleToken.Receiver}>]
+    let accessoryCollection: auth(NFTAccessory.Sale) &NFTAccessory.Collection
 
     prepare(acct: auth(BorrowValue, IssueStorageCapabilityController, PublishCapability, SaveValue, StorageCapabilities) &Account) {
         
@@ -63,7 +65,8 @@ transaction(
             viewType: Type<FungibleTokenMetadataViews.FTVaultData>()
         ) as? FungibleTokenMetadataViews.FTVaultData
             ?? panic("Could not construct valid FT type and view from identifier \(ftTypeIdentifier)")
-
+        self.accessoryCollection = acct.storage.borrow<auth(NFTAccessory.Sale) &NFTAccessory.Collection>(from: collectionData.storagePath)
+            ?? panic("no ressource with auth sale")
         self.saleCuts = []
         self.marketplacesCapability = []
 
@@ -91,11 +94,9 @@ transaction(
         assert(nftProviderCap?.check() ?? false, message: "Could not assign Provider Capability")
 
         self.nftProvider = nftProviderCap!
-
         let collection = acct.capabilities.borrow<&{NonFungibleToken.Collection}>(
                 collectionData.publicPath
             ) ?? panic("Could not borrow a reference to the signer's collection")
-
         var totalRoyaltyCut = 0.0
         let effectiveSaleItemPrice = saleItemPrice - commissionAmount
         let nft = collection.borrowNFT(saleItemID)!
@@ -142,7 +143,7 @@ transaction(
         let ftType = CompositeType(ftTypeIdentifier)!
 
         // Create listing
-        self.storefront.createListing(
+        let listingResourceID = self.storefront.createListing(
             nftProviderCapability: self.nftProvider,
             nftType: nftType,
             nftID: saleItemID,
@@ -153,5 +154,7 @@ transaction(
             commissionAmount: commissionAmount,
             expiry: expiry
         )
+
+        self.accessoryCollection.itemListed(listingResourceID, nftID: saleItemID)
     }
 }

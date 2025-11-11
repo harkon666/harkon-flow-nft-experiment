@@ -24,6 +24,9 @@ access(all) contract NFTAccessory: NonFungibleToken {
     /// The standard paths for the collection are stored in the collection resource type
     access(all) let MinterStoragePath: StoragePath
 
+    //entitlement for sale
+    access(all) entitlement Sale
+
     /// Event to show when an NFT is minted
     access(all) event Minted(
         type: String,
@@ -46,6 +49,7 @@ access(all) contract NFTAccessory: NonFungibleToken {
         access(all) let description: String
         access(all) let thumbnail: String
         access(all) let equipmentType: String
+        access(all) var listingResouceId: UInt64?
 
         /// Generic dictionary of traits the NFT has
         access(self) let metadata: {String: AnyStruct}
@@ -63,6 +67,7 @@ access(all) contract NFTAccessory: NonFungibleToken {
             self.thumbnail = thumbnail
             self.metadata = metadata
             self.equipmentType = equipmentType
+            self.listingResouceId = nil
         }
 
         /// createEmptyCollection creates an empty Collection
@@ -70,6 +75,14 @@ access(all) contract NFTAccessory: NonFungibleToken {
         /// @{NonFungibleToken.Collection}
         access(all) fun createEmptyCollection(): @{NonFungibleToken.Collection} {
             return <-NFTAccessory.createEmptyCollection(nftType: Type<@NFTAccessory.NFT>())
+        }
+
+        access(contract) fun itemListed(_ listingResouceId: UInt64) {
+          self.listingResouceId = listingResouceId
+        }
+
+        access(contract) fun itemUnlisted() {
+          self.listingResouceId = nil
         }
 
         access(all) view fun getMetaDataByField(field: String): AnyStruct? {
@@ -128,6 +141,9 @@ access(all) contract NFTAccessory: NonFungibleToken {
                     let mintedTimeTrait = MetadataViews.Trait(name: "mintedTime", value: self.metadata["mintedTime"]!, displayType: "Date", rarity: nil)
                     traitsView.addTrait(mintedTimeTrait)
 
+                    //just for quick check from metadata will be removed soon
+                    let listingResourceID = MetadataViews.Trait(name: "listingResouceId", value: self.listingResouceId, displayType: "Number", rarity: nil)
+                    traitsView.addTrait(listingResourceID)
                     return traitsView
                 case Type<MetadataViews.EVMBridgedMetadata>():
                     // Implementing this view gives the project control over how the bridged NFT is represented as an
@@ -197,6 +213,16 @@ access(all) contract NFTAccessory: NonFungibleToken {
                         .concat(". Check the submitted ID to make sure it is one that this collection owns."))
 
             return <-token
+        }
+
+        access(Sale) fun itemListed(_ listingResouceId: UInt64, nftID: UInt64) {
+          let nft = self.borrowNFT(nftID) as! &NFTAccessory.NFT
+          nft.itemListed(listingResouceId)
+        }
+
+        access(Sale) fun itemUnlisted(nftID: UInt64) {
+          let nft = self.borrowNFT(nftID) as! &NFTAccessory.NFT
+          nft.itemUnlisted()
         }
 
         /// deposit takes a NFT and adds it to the collections dictionary

@@ -17,8 +17,23 @@ access(all) contract NFTMoment: NonFungibleToken {
     access(all) event Withdraw(id: UInt64, from: Address?)
     access(all) event Deposit(id: UInt64, to: Address?)
     // Event kustom
-    access(all) event Minted(id: UInt64, name: String)
-
+    access(all) event Minted(recipient: Address, id: UInt64, name: String, description: String, thumbnail: String)
+    access(all) event AccessoryEquipped(NftMomentId: UInt64, NftAccessoryId: UInt64?, prevNFTAccessoryId: UInt64?)
+    access(all) event AccessoryUnequipped(NftMomentId: UInt64, NftAccessoryId: UInt64?)
+    
+    access(all) entitlement Equip
+    //custom metadataview
+    access(all) struct NFTMomentEquipmentMetadataView {
+      access(all) let id: UInt64
+      access(all) let equippedFrame: &NFTAccessory.NFT?
+      init(
+        equippedFrame: &NFTAccessory.NFT?,
+        id: UInt64,
+      ) {
+        self.id = id
+        self.equippedFrame = equippedFrame
+      }
+    }
     // 4. RESOURCE NFT
     // Ini adalah "benda" NFT Anda
     access(all) resource NFT: NonFungibleToken.NFT {
@@ -50,24 +65,37 @@ access(all) contract NFTMoment: NonFungibleToken {
             return <-NFTMoment.createEmptyCollection(nftType: Type<@NFTMoment.NFT>())
         }
 
-        access(all) fun equipFrame(frameNFT: @{NonFungibleToken.NFT}): @{NonFungibleToken.NFT}? {
-          let accessoryNFT <- frameNFT as! @NFTAccessory.NFT
+        access(contract) fun equipFrame(frameNFT: @NFTAccessory.NFT): @NFTAccessory.NFT? {
+          let accessoryNFT <- frameNFT
           if self.equippedFrame != nil {
+            
             let prevEquippedAccessory <- self.equippedFrame <- accessoryNFT
+            emit NFTMoment.AccessoryEquipped(NftMomentId: self.id, NftAccessoryId: self.equippedFrame?.id, prevNFTAccessoryId: prevEquippedAccessory?.id)
             return <-prevEquippedAccessory
           } else {
 
             let oldEqippedAccessories <- self.equippedFrame <-accessoryNFT
             destroy oldEqippedAccessories
+            emit NFTMoment.AccessoryEquipped(NftMomentId: self.id, NftAccessoryId: self.equippedFrame?.id, prevNFTAccessoryId: nil)
             
             return nil
           }
+        }
+
+        access(contract) fun unequipFrame(): @NFTAccessory.NFT {
+          pre {
+            self.equippedFrame != nil: "no accessory equipped"
+          }
+          let unequippedAccessory <- self.equippedFrame <- nil
+          emit NFTMoment.AccessoryUnequipped(NftMomentId: self.id, NftAccessoryId: unequippedAccessory?.id)
+          return <- unequippedAccessory as! @NFTAccessory.NFT
         }
 
         // getViews() memberi tahu marketplace tampilan apa saja yang Anda dukung
         access(all) view fun getViews(): [Type] {
             return [
                 Type<MetadataViews.Display>(),
+                Type<NFTMomentEquipmentMetadataView>(),
                 Type<MetadataViews.ExternalURL>(),
                 Type<MetadataViews.NFTCollectionData>(),
                 Type<MetadataViews.NFTCollectionDisplay>(),
@@ -86,6 +114,17 @@ access(all) contract NFTMoment: NonFungibleToken {
                         thumbnail: MetadataViews.HTTPFile(
                             url: self.thumbnail
                         ),
+                    )
+                case Type<NFTMomentEquipmentMetadataView>():
+                    // Pinjam referensi ke 'equippedFrame' yang 
+                    // tersimpan di resource NFTMoment ini.
+                    // (Asumsi Anda punya: var equippedFrame: @NFTAccessories.NFT?)
+                    let frameRef = &self.equippedFrame as &NFTAccessory.NFT?
+                    
+                    // Buat dan kembalikan struct kustom Anda
+                    return NFTMomentEquipmentMetadataView(
+                        equippedFrame: frameRef,
+                        id: self.id,
                     )
                 case Type<MetadataViews.Editions>():
                     // There is no max number of NFTs that can be minted from this contract
@@ -264,6 +303,19 @@ access(all) contract NFTMoment: NonFungibleToken {
             NFTMoment.emitNFTUpdated(authTokenRef)
         }
 
+        access(Equip) fun equipFrame(momentNFTID: UInt64, frameNFT: @NFTAccessory.NFT): @NFTAccessory.NFT? {
+          pre {
+            frameNFT.listingResouceId == nil: "frameNFT is listed for sale, please unlist frameNFT"
+          }
+          let nft: &NFTMoment.NFT = self.borrowNFT(momentNFTID) as! &NFTMoment.NFT
+          return <-nft.equipFrame(frameNFT: <-frameNFT)
+        }
+
+        access(Equip) fun unequipFrame(momentNFTID: UInt64): @NFTAccessory.NFT {
+          let nft: &NFTMoment.NFT = self.borrowNFT(momentNFTID) as! &NFTMoment.NFT
+          return <- nft.unequipFrame()
+        }
+
         access(all) view fun getIDs(): [UInt64] {
           return self.ownedNFTs.keys
         }
@@ -334,10 +386,11 @@ access(all) contract NFTMoment: NonFungibleToken {
 
         // Fungsi yang dipanggil backend Anda
         access(all) fun mintNFT(
+            recipient: &{NonFungibleToken.Receiver},
             name: String,
             description: String,
             thumbnail: String
-        ): @NFTMoment.NFT {
+        ) {
             let metadata: {String: AnyStruct} = {}
             let currentBlock = getCurrentBlock()
             metadata["mintedBlock"] = currentBlock.height
@@ -353,9 +406,9 @@ access(all) contract NFTMoment: NonFungibleToken {
             let id = newNFT.id
 
             NFTMoment.totalSupply = NFTMoment.totalSupply + 1
-            emit Minted(id: id, name: name)
+            emit Minted(recipient: recipient.owner!.address, id: id, name: name, description: description, thumbnail: thumbnail)
 
-            return <-newNFT
+            recipient.deposit(token: <-newNFT)
         }
     }
 

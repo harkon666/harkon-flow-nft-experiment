@@ -42,12 +42,12 @@ transaction(
 
     execute {
         // Mint the NFT and deposit it to the recipient's collection
-        let mintedNFT <- self.minter.mintNFT(
+        self.minter.mintNFT(
+            recipient: self.recipientCollectionRef,
             name: name,
             description: description,
             thumbnail: thumbnail,
-        )
-        self.recipientCollectionRef.deposit(token: <-mintedNFT)
+        )        
     }
 
 }

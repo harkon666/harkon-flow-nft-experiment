@@ -7,7 +7,7 @@ transaction(
   nftAccessoryId: UInt64,
   nftMomentId: UInt64,
 ) {
-    let momentNFT: &NFTMoment.NFT
+    let momentCollectionRef: auth(NFTMoment.Equip) &NFTMoment.Collection
     let accessoryCollectionRef: &NFTAccessory.Collection
     let frameNFT: @NFTAccessory.NFT
     prepare(signer: auth(BorrowValue) &Account) {
@@ -16,11 +16,10 @@ transaction(
           ?? panic("Could not resolve NFTCollectionData view. The NFTAccessory contract needs to implement the NFTCollectionData Metadata view in order to execute this transaction")
       let momentCollectionData = NFTMoment.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>()) as! MetadataViews.NFTCollectionData?
           ?? panic("Could not resolve NFTCollectionData view. The NFTMoment contract needs to implement the NFTCollectionData Metadata view in order to execute this transaction")
-      let momentCollectionRef = signer.storage.borrow<&NFTMoment.Collection>(from: momentCollectionData.storagePath)
+      self.momentCollectionRef = signer.storage.borrow<auth(NFTMoment.Equip) &NFTMoment.Collection>(from: momentCollectionData.storagePath)
           ?? panic("No Moment Collection Ressource in Storage")
       self.accessoryCollectionRef = signer.storage.borrow<&NFTAccessory.Collection>(from: accessoryCollectionData.storagePath)
           ?? panic("No Accessory Collection Ressource in Storage")
-      self.momentNFT = momentCollectionRef.borrowNFT(nftMomentId) as! &NFTMoment.NFT
       // borrow a reference to the signer's NFT collection
       let withdrawRef = signer.storage.borrow<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>(
         from: accessoryCollectionData.storagePath
@@ -35,7 +34,7 @@ transaction(
     }
 
     execute {
-      let prevEquipFrame <- self.momentNFT.equipFrame(frameNFT: <-self.frameNFT)
+      let prevEquipFrame <- self.momentCollectionRef.equipFrame(momentNFTID: nftMomentId, frameNFT: <-self.frameNFT)
       if prevEquipFrame != nil {
         self.accessoryCollectionRef.deposit(token: <-prevEquipFrame!)
       } else {
