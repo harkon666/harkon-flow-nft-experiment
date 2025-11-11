@@ -2,7 +2,9 @@ package main
 
 import (
 	"backend/ent"
+	"backend/transactions"
 	"net/http"
+	"log"
 
 	"github.com/labstack/echo/v4"
 )
@@ -54,5 +56,47 @@ func (h *Handler) getMoments(c echo.Context) error {
 	return c.JSON(http.StatusOK, moments)
 }
 
-// Anda bisa menambahkan handler lain di sini...
-// (misal: getAccessoryByID, createListing, dll.)
+func (h *Handler) mintMoment(c echo.Context) error {
+	// 1. Siapkan variabel untuk menampung request body
+	var req MintMomentRequest
+
+	// 2. 'Bind' (ikat) JSON body yang masuk ke 'req' struct
+	if err := c.Bind(&req); err != nil {
+		log.Println("Error binding request:", err)
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Invalid request body: " + err.Error(),
+		})
+	}
+
+	// 3. (Opsional) Validasi input
+	if req.Recipient == "" || req.Name == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "recipient and name are required fields",
+		})
+	}
+
+	// 4. Panggil fungsi 'MintNFTMoment' Anda (dari file 'mint_moment.go')
+	//    Fungsi ini akan melakukan semua pekerjaan berat di blockchain
+	err := transactions.MintNFTMoment(
+		req.Recipient,
+		req.Name,
+		req.Description,
+		req.Thumbnail,
+	)
+
+	// 5. Tangani hasilnya
+	if err != nil {
+		// Jika transaksi gagal, kirim error ke frontend
+		log.Printf("Gagal menjalankan transaksi mint: %v", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	// 6. Jika sukses, kirim respon 201 Created
+	return c.JSON(http.StatusCreated, map[string]string{
+		"message":   "NFT minted successfully!",
+		"recipient": req.Recipient,
+		"name":      req.Name,
+	})
+}

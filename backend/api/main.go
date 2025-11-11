@@ -38,6 +38,7 @@ func main() {
 	e.GET("/accessories", h.getAccessories)
 
 	e.GET("/moments", h.getMoments)
+	e.POST("/moment", h.mintMoment)
 
 	log.Println("Server API dimulai di http://localhost:8000")
 	e.Logger.Fatal(e.Start(":8000"))
