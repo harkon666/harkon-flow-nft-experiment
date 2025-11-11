@@ -21,7 +21,7 @@ transaction(address:Address, id: UInt64) {
             ?? panic("No ressource collection in storage")
         
         let nft = self.collectionData.borrowNFT(id) as! auth(NFTAccessory.Sale) &NFTAccessory.NFT
-        nft.itemListed(10)
+        // nft.itemListed(10)
         // self.collectionData = signer.storage.borrow<&NFTAccessory.Collection>(from: NFTAccessory.CollectionPublicPath)
         //     ?? panic("No ressource collection in storage")
 
