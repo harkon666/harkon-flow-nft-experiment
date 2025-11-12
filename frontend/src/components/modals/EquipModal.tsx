@@ -102,9 +102,8 @@ const EquipModal: React.FC<EquipModalProps> = ({
     };
   }, [isOpen]);
 
-  const { equip, isPending: isEquipPending, isSealed, status, txId } = useEquipNFT();
+  const { equip, isPending: isEquipPending, isSealed, error } = useEquipNFT();
   // const { remove, isPending: isRemovePending } = useRemoveNFT();
-
   useEffect(() => {
     // Jika 'equip' atau 'remove' selesai, panggil callback
     if (isSealed) {
@@ -208,7 +207,7 @@ const EquipModal: React.FC<EquipModalProps> = ({
             disabled={!selectedAccessoryToEquip || !moment}
             className="pixel-button w-full text-sm ...">
             <Check size={16} />
-            {isEquipPending ? "...Equipping" : `[ EQUIP SELECTED ACCESSORY ]`}
+            {isEquipPending ? "...Equipping" : error ? "[ ERROR ]" : `[ EQUIP SELECTED ACCESSORY ]`}
           </button>
         </div>
         

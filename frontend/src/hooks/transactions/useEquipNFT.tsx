@@ -12,49 +12,43 @@ const EQUIP_NFT_TRANSACTION = `
 
   transaction(
     nftAccessoryId: UInt64,
-    nftMomentId: UInt64
+    nftMomentId: UInt64,
   ) {
-    let momentNFT: &NFTMoment.NFT
-    let accessoryCollectionRef: &NFTAccessory.Collection
-    let frameNFT: @NFTAccessory.NFT
-    
-    prepare(signer: auth(BorrowValue) &Account) {
+      let momentCollectionRef: auth(NFTMoment.Equip) &NFTMoment.Collection
+      let accessoryCollectionRef: &NFTAccessory.Collection
+      let frameNFT: @NFTAccessory.NFT
+      prepare(signer: auth(BorrowValue) &Account) {
 
-      let accessoryCollectionData = NFTAccessory.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>()) as! MetadataViews.NFTCollectionData?
-          ?? panic("Could not resolve NFTCollectionData view...")
-      let momentCollectionData = NFTMoment.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>()) as! MetadataViews.NFTCollectionData?
-          ?? panic("Could not resolve NFTMoment CollectionData view...")
-      
-      let momentCollectionRef = signer.storage.borrow<&NFTMoment.Collection>(from: momentCollectionData.storagePath)
-          ?? panic("No Moment Collection Ressource in Storage")
-      
-      self.accessoryCollectionRef = signer.storage.borrow<&NFTAccessory.Collection>(from: accessoryCollectionData.storagePath)
-          ?? panic("No Accessory Collection Ressource in Storage")
-      
-      self.momentNFT = momentCollectionRef.borrowNFT(nftMomentId) as! &NFTMoment.NFT
-      
-      // Pinjam referensi untuk 'withdraw' (sesuai kode Anda)
-      let withdrawRef = signer.storage.borrow<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>(
+        let accessoryCollectionData = NFTAccessory.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>()) as! MetadataViews.NFTCollectionData?
+            ?? panic("Could not resolve NFTCollectionData view. The NFTAccessory contract needs to implement the NFTCollectionData Metadata view in order to execute this transaction")
+        let momentCollectionData = NFTMoment.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>()) as! MetadataViews.NFTCollectionData?
+            ?? panic("Could not resolve NFTCollectionData view. The NFTMoment contract needs to implement the NFTCollectionData Metadata view in order to execute this transaction")
+        self.momentCollectionRef = signer.storage.borrow<auth(NFTMoment.Equip) &NFTMoment.Collection>(from: momentCollectionData.storagePath)
+            ?? panic("No Moment Collection Ressource in Storage")
+        self.accessoryCollectionRef = signer.storage.borrow<&NFTAccessory.Collection>(from: accessoryCollectionData.storagePath)
+            ?? panic("No Accessory Collection Ressource in Storage")
+        // borrow a reference to the signer's NFT collection
+        let withdrawRef = signer.storage.borrow<auth(NonFungibleToken.Withdraw) &{NonFungibleToken.Collection}>(
           from: accessoryCollectionData.storagePath
-      ) ?? panic("Could not borrow withdraw reference from signer")
+        ) ?? panic("The signer does not store a NFT Collection object at the path \(accessoryCollectionData.storagePath)"
+                        .concat("The signer must initialize their account with this collection first!"))
+        self.frameNFT <- withdrawRef.withdraw(withdrawID: nftAccessoryId) as! @NFTAccessory.NFT
 
-      self.frameNFT <- withdrawRef.withdraw(withdrawID: nftAccessoryId) as! @NFTAccessory.NFT
-
-      // Asumsi 'A.f8d6e0586b0a20c7' adalah alamat Anda di emulator
-      assert(
-        self.frameNFT.getType().identifier == "A.f8d6e0586b0a20c7.NFTAccessory.NFT",
-        message: "Withdrawn NFT is not the correct Accessory type."
-      )
-    }
-
-    execute {
-      let prevEquipFrame <- self.momentNFT.equipFrame(frameNFT: <-self.frameNFT)
-      if prevEquipFrame != nil {
-        self.accessoryCollectionRef.deposit(token: <-prevEquipFrame!)
-      } else {
-        destroy prevEquipFrame
+        assert(
+          self.frameNFT.getType().identifier == "A.f8d6e0586b0a20c7.NFTAccessory.NFT",
+          message: "The NFT that was withdrawn to transfer is not the type that was requested <A.f8d6e0586b0a20c7.NFTAccessory.NFT>."
+        )
       }
-    }
+
+      execute {
+        let prevEquipFrame <- self.momentCollectionRef.equipFrame(momentNFTID: nftMomentId, frameNFT: <-self.frameNFT)
+        if prevEquipFrame != nil {
+          self.accessoryCollectionRef.deposit(token: <-prevEquipFrame!)
+        } else {
+          destroy prevEquipFrame
+        }
+      }
+
   }
 `;
 

@@ -6,6 +6,7 @@ import {
 import ButtonConnect from './components/ButtonConnect';
 import InventorySection from './components/sections/InventorySection';
 import YourSalesSection from './components/sections/YourSalesSection';
+import GachaSection from './components/sections/GachaSection';
 
 interface AccessoryListing {
   id: number;
@@ -268,7 +269,7 @@ function App() {
           </div>
         </section>
 
-        <section className="container mx-auto px-4 py-16 bg-gradient-to-b from-black to-gray-900">
+        {/* <section className="container mx-auto px-4 py-16 bg-gradient-to-b from-black to-gray-900">
           <h2 className="text-2xl text-green-500 text-center mb-12 glow">Gacha Accessory Pack</h2>
           <div className="max-w-md mx-auto">
             <div className="pixel-card text-center">
@@ -291,7 +292,9 @@ function App() {
               )}
             </div>
           </div>
-        </section>
+        </section> */}
+
+        <GachaSection />
 
         <YourSalesSection />
 
