@@ -56,14 +56,6 @@ access(all) contract AccessoryPack {
     }
 
     /* --- Reveal --- */
-    //
-    /// Here the caller provides the Receipt given to them at commitment. The contract then "flips a coin" with
-    /// _randomCoin(), providing the Receipt's contained Request.
-    ///
-    /// If result is 1, user loses, but if it's 0 the user doubles their bet. Note that the caller could condition the
-    /// revealing transaction, but they've already provided their bet amount so there's no loss for the contract if
-    /// they do.
-    ///
     access(all) fun RevealGacha(receipt: @Receipt): UInt8 {
         pre {
             receipt.request != nil: 
@@ -123,7 +115,7 @@ access(all) contract AccessoryPack {
           thumbnail: mintedNFT.thumbnail,
           equipmentType: mintedNFT.equipmentType
       )
-
+      let textResult = mintedNFT.name.concat(" ").concat(descriptionRarity)
       //what should i do? do i need to make it the same as how NFTMoment minted nft?
       recipient.deposit(token: <-mintedNFT)
     }
