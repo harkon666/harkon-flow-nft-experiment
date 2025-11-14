@@ -7,6 +7,8 @@ import { useGetAccessoryMetadata } from '@/hooks/scripts/useGetAccessoryMetadata
 import { useFlowCurrentUser } from '@onflow/react-sdk';
 import { useEquipNFT } from '@/hooks/transactions/useEquipNFT';
 import { useCheckEquipment } from '@/hooks/scripts/useCheckEquipment';
+import StackImage from '../StackImage';
+import { resolveIpfsUrl } from '@/lib/utils';
 
 
 const AccessoryChoice: React.FC<{ 
@@ -30,7 +32,7 @@ const AccessoryChoice: React.FC<{
       onClick={onSelect}
       className={`p-2 text-center transition-all ${isSelected ? 'border-4 border-green-500 glow-light' : 'border-2'}`}
     >
-      <div className="text-3xl">{display?.thumbnail.url ? <img src={display.thumbnail.url} /> : '✨'}</div>
+      <div className="text-3xl">{display?.thumbnail ? <img src={resolveIpfsUrl(display.thumbnail)} /> : '✨'}</div>
       <p className="text-green-300 text-xs truncate">{display?.name ?? `ID: ${accessoryId}`}</p>
       <p className="text-green-300 text-xs truncate">{display?.id ?? `ID: ${accessoryId}`}</p>
     </button>
@@ -42,6 +44,7 @@ interface Moment {
   name: string;
   image: string; // (Berdasarkan kode Anda, ini emoji)
   equippedAccessories: number[];
+  thumbnail: string;
 }
 
 // Ini adalah semua props yang dibutuhkan modal
@@ -129,7 +132,7 @@ const EquipModal: React.FC<EquipModalProps> = ({
   if (!isOpen) {
     return null;
   }
-
+  console.log(equippedFrameData, 'woi equip')
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" onClick={onClose}>
       <div
@@ -147,6 +150,7 @@ const EquipModal: React.FC<EquipModalProps> = ({
           
           {/* Kolom 1: Momen yang sedang di-equip (sudah dipilih) */}
           <div className="pixel-card">
+            <StackImage frame={equippedFrameData?.thumbnail?.url || ""} moment={moment?.thumbnail}/>
             <h3 className="text-green-400 text-sm mb-6 pixel-text">Currently Equipped</h3>
             <div className="flex justify-center mb-4">
               <div className="pixel-card p-4 text-center border-4 border-green-500 glow-light w-1/2">
@@ -156,25 +160,6 @@ const EquipModal: React.FC<EquipModalProps> = ({
                 </> : "No Equipped Frame"}
               </div>
             </div>
-            {/* Tampilkan aksesoris yang sedang terpasang */}
-            {/* {moment.equippedAccessories.length === 0 ? (
-              <p className="text-gray-500 text-xs mb-4 text-center">(Slots are empty)</p>
-            ) : (
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                {moment.equippedAccessories.map((accId) => (
-                  // Anda perlu komponen 'EquippedAccessoryCard'
-                  // yang mengambil ID dan menampilkannya
-                  <div key={accId} className="relative pixel-card p-2 border-2 border-green-500">
-                    <p className="text-center text-xs">ID: {accId}</p>
-                    <button
-                      // onClick={() => handleRemoveAccessory(accId)}
-                      className="absolute -top-2 -right-2 bg-black border-2 ...">
-                      <X size={12} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )} */}
           </div>
 
           {/* Kolom 2: Pilih Aksesori (Sekarang Fetching di Sini) */}

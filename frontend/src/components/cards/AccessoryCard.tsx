@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useGetAccessoryMetadata } from '../../hooks/scripts/useGetAccessoryMetadata'; // Sesuaikan path
+import { resolveIpfsUrl } from '@/lib/utils';
 
 interface AccessoryCardProps {
   id: number;
@@ -31,13 +32,14 @@ const AccessoryCard: React.FC<AccessoryCardProps> = ({ id, ownerAddress }) => {
   }
 
   // Tampilan setelah data dimuat
+  console.log(display, 'acc')
   return (
     <div className="pixel-card text-center">
       <div className="w-full aspect-square bg-gray-900 border-2 border-green-500 mb-6 flex items-center justify-center overflow-hidden">
         {/* Tampilkan gambar jika ada, jika tidak, tampilkan emoji */}
-        {display?.thumbnail?.url ? (
+        {display?.thumbnail? (
           <img 
-            src={display.thumbnail.url} 
+            src={resolveIpfsUrl(display.thumbnail)} 
             alt={display.name}
             className="w-full h-full object-cover"
             style={{ imageRendering: 'pixelated' }} // Menjaga style retro

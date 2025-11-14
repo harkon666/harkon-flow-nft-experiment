@@ -16,7 +16,7 @@ const EquipModalTrigger: React.FC<EquipModalTriggerProps> = ({
   ownerAddress
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+  console.log(moment, 'woi moment trigger')
   return (
     <>
       <button
