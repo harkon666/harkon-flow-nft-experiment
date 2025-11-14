@@ -47,7 +47,7 @@ access(all) contract AccessoryPack {
     /// Receipt resource which is used by the better to reveal the coin toss result and determine their winnings.
     ///
     access(all) fun RequestGacha(): @Receipt {
-        let request <- self.consumer.requestRandomness()
+        let request: @RandomConsumer.Request <- self.consumer.requestRandomness()
         let receipt <- create Receipt(request: <-request)
 
         emit AccessoryPackOpened(commitBlock: receipt.getRequestBlock()!, receiptID: receipt.uuid)
@@ -83,24 +83,28 @@ access(all) contract AccessoryPack {
       var name: String = ""
       var description: String = ""
       var descriptionRarity: String = ""
+      var thumbnail: String = ""
       if randomNumber == 1 {
           name = "Bingkai Emas"
           description = "emas banget"
           descriptionRarity = "Super Rare"
+          thumbnail = "ipfs://bafybeibknydg67jcaybwkpxvstlzkd5i4itzgxfqmdn2fs62dldkdt4d3u"
       } else if randomNumber > 1 && randomNumber < 11 {
           name = "Bingkai Perak"
           description = "Perak banget"
           descriptionRarity = "Rare"
+          thumbnail = "ipfs://bafybeiajk2fbvg2ycxbbqugwbu52luav523rv43lwmkjr2mchbnlpbvkdy"
       } else {
           name = "Bingkai Kayu"
           description = "Kayu banget"
           descriptionRarity = "Common"
+          thumbnail = "ipfs://bafybeifxyn7qqz72io7eegzarsv7omsxwxhdtwprzck4vd5ktfnwyf3oa4"
       }
 
       let mintedNFT <- minterRef.mintNFT(
           name: name,
           description: description,
-          thumbnail: "bingkai.png", // Ini selalu sama
+          thumbnail: thumbnail, // Ini selalu sama
           equipmentType: "bingkai",   // Ini selalu sama
           score: UFix64(randomNumber),
           max: 100.0,
