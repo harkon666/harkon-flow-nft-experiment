@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Wallet, Package, ShoppingCart, Check, X } from 'lucide-react';
+import { ShoppingCart, Check, X } from 'lucide-react';
 import {
   useFlowCurrentUser,
 } from '@onflow/react-sdk'
@@ -7,6 +7,7 @@ import ButtonConnect from './components/ButtonConnect';
 import InventorySection from './components/sections/InventorySection';
 import YourSalesSection from './components/sections/YourSalesSection';
 import GachaSection from './components/sections/GachaSection';
+import MintMomentSection from './components/sections/MintMomentSection';
 
 interface AccessoryListing {
   id: number;
@@ -254,21 +255,21 @@ function App() {
         
         <InventorySection />
 
-        <section className="container mx-auto px-4 py-16">
+        {/* <section className="container mx-auto px-4 py-16">
           <h2 className="text-2xl text-green-500 text-center mb-12 glow">Mint Your Moment</h2>
           <div className="max-w-md mx-auto">
             <div className="pixel-card text-center">
               <div className="w-full aspect-square bg-gray-900 border-2 border-green-500 mb-6 flex items-center justify-center">
                 <div className="text-6xl">🎮</div>
               </div>
-              <p className="text-green-400 text-xl mb-6 pixel-text">Price: 5.0 FLOW</p>
+              <p className="text-green-400 text-xl mb-6 pixel-text">Price: FREE</p>
               <button className="pixel-button w-full">
                 [ MINT MOMENT ]
               </button>
             </div>
           </div>
-        </section>
-
+        </section> */}
+        <MintMomentSection refetchMoments={() => null} />
         {/* <section className="container mx-auto px-4 py-16 bg-gradient-to-b from-black to-gray-900">
           <h2 className="text-2xl text-green-500 text-center mb-12 glow">Gacha Accessory Pack</h2>
           <div className="max-w-md mx-auto">
