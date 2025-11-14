@@ -3,8 +3,13 @@ package main
 import (
 	"backend/ent"
 	"backend/transactions"
-	"net/http"
+	"backend/utils"
+	"fmt"
+	"io"
 	"log"
+	"net/http"
+	"os"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -24,9 +29,9 @@ func (h *Handler) getAccessories(c echo.Context) error {
 	// Gunakan 'h.DB' (klien 'ent' kita) untuk query ke database
 	accessories, err := h.DB.NFTAccessory.Query().
 		// Opsional: Anda bisa 'preload' data owner
-		// WithOwner(). 
+		// WithOwner().
 		All(ctx)
-	
+
 	if err != nil {
 		// Jika ada error, kirim respon error 500
 		return c.JSON(http.StatusInternalServerError, map[string]string{
@@ -46,7 +51,7 @@ func (h *Handler) getMoments(c echo.Context) error {
 		// Anda bisa 'preload' data relasi 'equip' di sini
 		// WithEquippedAccessories().
 		All(ctx)
-	
+
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
@@ -57,46 +62,101 @@ func (h *Handler) getMoments(c echo.Context) error {
 }
 
 func (h *Handler) mintMoment(c echo.Context) error {
-	// 1. Siapkan variabel untuk menampung request body
-	var req MintMomentRequest
 
-	// 2. 'Bind' (ikat) JSON body yang masuk ke 'req' struct
-	if err := c.Bind(&req); err != nil {
-		log.Println("Error binding request:", err)
+	// 1. Ambil data TEKS dari form multipart
+	recipient := c.FormValue("recipient")
+	name := c.FormValue("name")
+	description := c.FormValue("description")
+
+	// 2. Validasi input teks
+	if recipient == "" || name == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body: " + err.Error(),
+			"error": "recipient dan name adalah field wajib",
 		})
 	}
 
-	// 3. (Opsional) Validasi input
-	if req.Recipient == "" || req.Name == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "recipient and name are required fields",
-		})
+	// 3. Ambil data FILE dari form multipart
+	// "thumbnail" adalah 'name' dari input file di frontend
+	file, err := c.FormFile("thumbnail")
+	if err != nil {
+		log.Println("Error mengambil form file 'thumbnail':", err)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "file 'thumbnail' wajib ada"})
 	}
 
-	// 4. Panggil fungsi 'MintNFTMoment' Anda (dari file 'mint_moment.go')
-	//    Fungsi ini akan melakukan semua pekerjaan berat di blockchain
-	err := transactions.MintNFTMoment(
-		req.Recipient,
-		req.Name,
-		req.Description,
-		req.Thumbnail,
+	// 4. Buka file yang di-upload
+	src, err := file.Open()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Gagal membuka file yang di-upload"})
+	}
+	defer src.Close()
+
+	// 5. Simpan file ke path sementara (temp)
+	// (Di aplikasi produksi, gunakan nama unik/random)
+	tempFilePath := "moment_" + fmt.Sprint(time.Now().UnixNano()) + "_" + file.Filename
+	dst, err := os.Create(tempFilePath)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Gagal membuat file sementara"})
+	}
+
+	// Salin file yang di-upload ke file sementara
+	if _, err = io.Copy(dst, src); err != nil {
+		dst.Close()             // Tutup dulu sebelum hapus
+		os.Remove(tempFilePath) // Hapus file temp jika copy gagal
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Gagal menyimpan file sementara"})
+	}
+	dst.Close() // Tutup file setelah selesai 'copy'
+
+	// --- Jadwalkan PENGHAPUSAN file sementara ---
+	// 'defer' akan berjalan di akhir fungsi 'mintMoment'
+	defer func() {
+		log.Println("Menghapus file sementara:", tempFilePath)
+		os.Remove(tempFilePath)
+	}()
+
+	// 6. --- TAHAP MODERASI (PENTING) ---
+	// Di sinilah Anda memanggil Google Cloud Vision / AWS Rekognition
+	// pada 'tempFilePath'
+	//
+	// isSafe, err := runModeration(tempFilePath)
+	// if err != nil || !isSafe {
+	// 	  return c.JSON(http.StatusForbidden, map[string]string{"error": "Konten foto dilarang"})
+	// }
+	// log.Println("Moderasi AI lolos.")
+
+	// 7. Upload file yang aman ke Pinata
+	log.Println("Mengunggah", tempFilePath, "ke Pinata...")
+	pinataResp, err := utils.UploadToPinata(tempFilePath)
+	if err != nil {
+		log.Printf("Gagal upload ke Pinata: %v", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Gagal mengunggah ke IPFS"})
+	}
+
+	// Buat URL IPFS yang benar
+	thumbnailUrl := fmt.Sprintf("ipfs://%s", pinataResp.IpfsHash)
+	log.Println("Berhasil di-pin ke Pinata:", thumbnailUrl)
+
+	// 8. Panggil transaksi blockchain dengan URL IPFS baru
+	//    (Kita ganti 'req.Thumbnail' dengan 'thumbnailUrl')
+	err = transactions.MintNFTMoment(
+		recipient,
+		name,
+		description,
+		thumbnailUrl, // <-- Menggunakan URL IPFS yang baru!
 	)
 
-	// 5. Tangani hasilnya
+	// 9. Tangani hasilnya
 	if err != nil {
-		// Jika transaksi gagal, kirim error ke frontend
 		log.Printf("Gagal menjalankan transaksi mint: %v", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})
 	}
 
-	// 6. Jika sukses, kirim respon 201 Created
+	// 10. Jika sukses, kirim respon 201 Created
 	return c.JSON(http.StatusCreated, map[string]string{
 		"message":   "NFT minted successfully!",
-		"recipient": req.Recipient,
-		"name":      req.Name,
+		"recipient": recipient,
+		"name":      name,
+		"thumbnail": thumbnailUrl, // Kirimkan URL IPFS baru ke frontend
 	})
 }
