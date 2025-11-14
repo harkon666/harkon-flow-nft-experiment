@@ -1,9 +1,9 @@
 'use client'; // (Jika Anda menggunakan Next.js App Router, tambahkan ini)
 
 import React from 'react';
-import BingkaiKayu from '@/assets/Bingkai Kayu.png' 
-import Gajah from "@/assets/gajah.png"
-import RainEffect from "@/assets/rain-effect.gif"
+// import BingkaiKayu from '@/assets/Bingkai Kayu.png' 
+// import Gajah from "@/assets/gajah.png"
+// import RainEffect from "@/assets/rain-effect.gif"
 import { resolveIpfsUrl } from '@/lib/utils';
 
 interface StackImageProps {
