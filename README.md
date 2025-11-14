@@ -13,7 +13,7 @@ However, due to the robust architecture and the positive feedback from the initi
 
 * **Composable NFTs:** `NFTMoment` (UGC photos) that can be physically "equipped" with `NFTAccessories`.
 * **On-Chain Gacha:** An `AccessoryPack` that uses Flow's native VRF (on-chain randomness) via the "Receipt-as-NFT" commit-reveal pattern.
-* **Proof of Attendance:** A "Soul-Bound Token" (`NFTEventPass`) system for online/offline events, used for "Earn-to-Mint."
+* **Proof of Attendance:** A "Soul-Bound Token" (`NFTEventPass`) system for online/offline events, used for "Earn-to-Mint." *(to-do)*
 * **Standard Marketplace:** Full integration with `NFTStorefrontV2` for listings and sales.
 * **Secure UGC:** A secure backend flow for AI moderation and uploading assets to IPFS (Pinata).
 * **API & Indexer:** A Go (Echo) backend connected to an `ent` database for fast off-chain queries.
