@@ -11,10 +11,8 @@ import "MetadataViews" // Kita mungkin perlu ini untuk data gambar
 access(all) contract EventManager {
 
     // 1. STATE KONTRAK
-    // Ini adalah 'database' on-chain kita.
-    // Kita akan menyimpan semua resource event di sini,
     // di-indeks berdasarkan ID unik.
-    access(all) var events: @{UInt64: Event}
+    access(all) var events: {UInt64: Event}
     
     // Ini adalah 'counter' untuk memastikan ID event selalu unik
     access(all) var nextEventID: UInt64
@@ -100,7 +98,7 @@ access(all) contract EventManager {
 
     // 3. RESOURCE EVENT (Data Inti)
     // Ini adalah 'resource' yang disimpan di storage KONTRAK
-    access(all) resource Event {
+    access(all) struct Event {
         access(all) let eventID: UInt64
         access(all) let hostAddress: Address
         access(all) let eventName: String
@@ -226,7 +224,7 @@ access(all) contract EventManager {
             quota: UInt64
         ): UInt64 {
             let currentBlock = getCurrentBlock()
-            let newEvent <- create Event(
+            let newEvent = Event(
                 hostAddress: hostAddress,
                 eventName: eventName,
                 description: description,
@@ -255,7 +253,7 @@ access(all) contract EventManager {
             let newID: UInt64 = newEvent.eventID
             
             // Simpan event baru ke 'database' kontrak
-            EventManager.events[newID] <-! newEvent
+            EventManager.events[newID] = newEvent
             
             return newID
         }
@@ -294,7 +292,7 @@ access(all) contract EventManager {
 
     // ---
     init() {
-        self.events <- {}
+        self.events = {}
         self.nextEventID = 1
         
         // Simpan Admin Resource di storage deployer
