@@ -1,6 +1,7 @@
 import "Burner"
 import "NonFungibleToken"
-
+import "FungibleToken"
+import "FlowToken"
 import "RandomConsumer"
 import "NFTAccessory"
 
@@ -14,11 +15,13 @@ import "NFTAccessory"
 access(all) contract AccessoryPack {
     /// The RandomConsumer.Consumer resource used to request & fulfill randomness
     access(self) let consumer: @RandomConsumer.Consumer
+    access(all) let gachaPrice: UFix64
+    access(self) let vault: @FlowToken.Vault
 
     /// The canonical path for common Receipt storage
     /// Note: production systems would consider handling path collisions
     access(all) let ReceiptStoragePath: StoragePath
-
+    access(all) let AdminStoragePath: StoragePath
     /* --- Events --- */
     //
     access(all) event AccessoryPackOpened(commitBlock: UInt64, receiptID: UInt64)
@@ -46,10 +49,13 @@ access(all) contract AccessoryPack {
     /// In this method, the caller commits a bet. The contract takes note of the block height and bet amount, returning a
     /// Receipt resource which is used by the better to reveal the coin toss result and determine their winnings.
     ///
-    access(all) fun RequestGacha(): @Receipt {
+    access(all) fun RequestGacha(payment: @{FungibleToken.Vault}): @Receipt {
+        pre {
+          payment.balance == self.gachaPrice: "imbalance payment Amount"
+        }
         let request: @RandomConsumer.Request <- self.consumer.requestRandomness()
         let receipt <- create Receipt(request: <-request)
-
+        self.vault.deposit(from: <-payment)
         emit AccessoryPackOpened(commitBlock: receipt.getRequestBlock()!, receiptID: receipt.uuid)
 
         return <- receipt
@@ -128,6 +134,13 @@ access(all) contract AccessoryPack {
       recipient.deposit(token: <-mintedNFT)
     }
 
+    access(all) resource Admin  {
+      access(all) fun adminWithdraw(amount: UFix64): @{FungibleToken.Vault} {     
+            // Tarik (withdraw) dana dan kembalikan
+            return <- AccessoryPack.vault.withdraw(amount: amount)
+      }
+    }
+
     /// Returns a random number between 0 and 1 using the RandomConsumer.Consumer resource contained in the contract.
     /// For the purposes of this contract, a simple modulo operation could have been used though this is not the case
     /// for all ranges. Using the Consumer.fulfillRandomInRange function ensures that we can get a random number
@@ -140,6 +153,15 @@ access(all) contract AccessoryPack {
     init() {
         // Create a RandomConsumer.Consumer resource
         self.consumer <-RandomConsumer.createConsumer()
+        self.gachaPrice = 1.0
+        self.vault <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>())
+
+        self.AdminStoragePath = /storage/AccessoryPackAdmin
+
+        self.account.storage.save(
+            <- create Admin(),
+            to: self.AdminStoragePath
+        )
 
         // Set the ReceiptStoragePath to a unique path for this contract - appending the address to the identifier
         // prevents storage collisions with other objects in user's storage
