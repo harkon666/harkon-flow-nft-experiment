@@ -7,7 +7,6 @@ import "MetadataViews"
 transaction(recipient: Address) {
 
     let recipientCollectionRef: &{NonFungibleToken.Receiver}
-    let minterRef: &NFTAccessory.NFTMinter
     let randomNumber: UInt8
 
     prepare(signer: auth(BorrowValue, LoadValue) &Account) {
@@ -16,8 +15,6 @@ transaction(recipient: Address) {
         // Load my receipt from storage
         let receipt <- signer.storage.load<@AccessoryPack.Receipt>(from: AccessoryPack.ReceiptStoragePath)
             ?? panic("No Receipt found in storage at path=".concat(AccessoryPack.ReceiptStoragePath.toString()))
-        self.minterRef = signer.storage.borrow<&NFTAccessory.NFTMinter>(from: NFTAccessory.MinterStoragePath)
-          ?? panic("no admin")
         self.randomNumber = AccessoryPack.RevealGacha(receipt: <-receipt)
         
         self.recipientCollectionRef = getAccount(recipient).capabilities.borrow<&{NonFungibleToken.Receiver}>(collectionData.publicPath)
@@ -29,6 +26,5 @@ transaction(recipient: Address) {
 
     execute {
         AccessoryPack.distributeAccessory(self.randomNumber, recipient: self.recipientCollectionRef)
-        log("berhasil njay")
     }
 }

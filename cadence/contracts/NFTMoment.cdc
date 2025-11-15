@@ -2,6 +2,7 @@ import "NonFungibleToken"
 import "NFTAccessory"
 import "ViewResolver"
 import "MetadataViews"
+import "EventPass"
 
 access(all) contract NFTMoment: NonFungibleToken {
 
@@ -260,9 +261,10 @@ access(all) contract NFTMoment: NonFungibleToken {
     access(all) resource Collection: NonFungibleToken.Collection {
         
         access(all) var ownedNFTs: @{UInt64: {NonFungibleToken.NFT}}
-
+        access(all) var isUsedFreeMint: Bool 
         init() {
             self.ownedNFTs <- {}
+            self.isUsedFreeMint = false
         }
 
         access(all) view fun getSupportedNFTTypes(): {Type: Bool} {
@@ -301,6 +303,13 @@ access(all) contract NFTMoment: NonFungibleToken {
             let authTokenRef = (&self.ownedNFTs[id] as auth(NonFungibleToken.Update) &{NonFungibleToken.NFT}?)!
             //authTokenRef.updateTransferDate(date: getCurrentBlock().timestamp)
             NFTMoment.emitNFTUpdated(authTokenRef)
+        }
+
+        access(contract) fun useFreeMint() {
+          pre {
+            self.isUsedFreeMint == false: "Free Mint already used"
+          }
+          self.isUsedFreeMint = true
         }
 
         access(Equip) fun equipFrame(momentNFTID: UInt64, frameNFT: @NFTAccessory.NFT): @NFTAccessory.NFT? {
@@ -386,11 +395,24 @@ access(all) contract NFTMoment: NonFungibleToken {
 
         // Fungsi yang dipanggil backend Anda
         access(all) fun mintNFT(
-            recipient: &{NonFungibleToken.Receiver},
+            recipient: &NFTMoment.Collection,
+            recipientPass: &EventPass.NFT,
             name: String,
             description: String,
-            thumbnail: String
+            thumbnail: String,
+            useFreeMint: Bool?
         ) {
+            pre {
+              useFreeMint == true || (recipientPass.isUsed == false): "Event Pass already used"
+              useFreeMint == false || (useFreeMint == true && recipient.isUsedFreeMint == false): "Free Mint already used"
+            }
+            
+            if useFreeMint == true {
+              recipient.useFreeMint()
+            } else {
+              recipientPass.useEventPass()
+            }
+
             let metadata: {String: AnyStruct} = {}
             let currentBlock = getCurrentBlock()
             metadata["mintedBlock"] = currentBlock.height

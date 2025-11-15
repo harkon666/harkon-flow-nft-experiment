@@ -14,7 +14,7 @@ import "NonFungibleToken"
 import "ViewResolver"
 import "MetadataViews"
 
-access(all) contract NFTAccessory: NonFungibleToken {
+access(all) contract EventPass: NonFungibleToken {
 
     /// Standard Paths
     access(all) let CollectionStoragePath: StoragePath
@@ -24,9 +24,6 @@ access(all) contract NFTAccessory: NonFungibleToken {
     /// The standard paths for the collection are stored in the collection resource type
     access(all) let MinterStoragePath: StoragePath
 
-    //entitlement for sale
-    access(all) entitlement Sale
-
     /// Event to show when an NFT is minted
     access(all) event Minted(
         type: String,
@@ -35,11 +32,17 @@ access(all) contract NFTAccessory: NonFungibleToken {
         minterAddress: Address?,
         minterUUID: UInt64,
         name: String,
-        description: String
+        description: String,
+        eventType: UInt8,
+        eventID: UInt64
     )
-
     /// We choose the name NFT here, but this type can have any name now
     /// because the interface does not require it to have a specific name any more
+    access(all) enum eventType:UInt8 {
+      access(all) case online;
+      access(all) case offline;
+    }
+
     access(all) resource NFT: NonFungibleToken.NFT {
 
         access(all) let id: UInt64
@@ -48,8 +51,9 @@ access(all) contract NFTAccessory: NonFungibleToken {
         access(all) let name: String
         access(all) let description: String
         access(all) let thumbnail: String
-        access(all) let equipmentType: String
-        access(all) var listingResouceId: UInt64?
+        access(all) let eventType: EventPass.eventType
+        access(all) var isUsed: Bool
+        access(all) let eventID: UInt64
 
         /// Generic dictionary of traits the NFT has
         access(self) let metadata: {String: AnyStruct}
@@ -58,31 +62,29 @@ access(all) contract NFTAccessory: NonFungibleToken {
             name: String,
             description: String,
             thumbnail: String,
-            equipmentType: String,
             metadata: {String: AnyStruct},
+            eventType: UInt8,
+            eventID: UInt64
         ) {
             self.id = self.uuid
             self.name = name
             self.description = description
             self.thumbnail = thumbnail
             self.metadata = metadata
-            self.equipmentType = equipmentType
-            self.listingResouceId = nil
+            self.eventType = EventPass.eventType(rawValue: eventType)!
+            self.isUsed = false
+            self.eventID = eventID
         }
 
         /// createEmptyCollection creates an empty Collection
         /// and returns it to the caller so that they can own NFTs
         /// @{NonFungibleToken.Collection}
         access(all) fun createEmptyCollection(): @{NonFungibleToken.Collection} {
-            return <-NFTAccessory.createEmptyCollection(nftType: Type<@NFTAccessory.NFT>())
+            return <-EventPass.createEmptyCollection(nftType: Type<@EventPass.NFT>())
         }
 
-        access(contract) fun itemListed(_ listingResouceId: UInt64) {
-          self.listingResouceId = listingResouceId
-        }
-
-        access(contract) fun itemUnlisted() {
-          self.listingResouceId = nil
+        access(account) fun useEventPass() {
+          self.isUsed = true
         }
 
         access(all) view fun getMetaDataByField(field: String): AnyStruct? {
@@ -129,9 +131,9 @@ access(all) contract NFTAccessory: NonFungibleToken {
                 case Type<MetadataViews.ExternalURL>():
                     return MetadataViews.ExternalURL("https://example-nft.onflow.org/".concat(self.id.toString()))
                 case Type<MetadataViews.NFTCollectionData>():
-                    return NFTAccessory.resolveContractView(resourceType: Type<@NFTAccessory.NFT>(), viewType: Type<MetadataViews.NFTCollectionData>())
+                    return EventPass.resolveContractView(resourceType: Type<@EventPass.NFT>(), viewType: Type<MetadataViews.NFTCollectionData>())
                 case Type<MetadataViews.NFTCollectionDisplay>():
-                    return NFTAccessory.resolveContractView(resourceType: Type<@NFTAccessory.NFT>(), viewType: Type<MetadataViews.NFTCollectionDisplay>())
+                    return EventPass.resolveContractView(resourceType: Type<@EventPass.NFT>(), viewType: Type<MetadataViews.NFTCollectionDisplay>())
                 case Type<MetadataViews.Traits>():
                     // exclude mintedTime and foo to show other uses of Traits
                     let excludedTraits = ["mintedTime"]
@@ -141,9 +143,9 @@ access(all) contract NFTAccessory: NonFungibleToken {
                     let mintedTimeTrait = MetadataViews.Trait(name: "mintedTime", value: self.metadata["mintedTime"]!, displayType: "Date", rarity: nil)
                     traitsView.addTrait(mintedTimeTrait)
 
-                    //just for quick check from metadata will be removed soon
-                    let listingResourceID = MetadataViews.Trait(name: "listingResouceId", value: self.listingResouceId, displayType: "Number", rarity: nil)
-                    traitsView.addTrait(listingResourceID)
+                    //will be removed just to fast check
+                    let isUsed = MetadataViews.Trait(name: "isUsed", value: self.isUsed, displayType: "Boolean", rarity: nil)
+                    traitsView.addTrait(isUsed)
                     return traitsView
                 case Type<MetadataViews.EVMBridgedMetadata>():
                     // Implementing this view gives the project control over how the bridged NFT is represented as an
@@ -155,7 +157,7 @@ access(all) contract NFTAccessory: NonFungibleToken {
                     //      see FLIP-318: https://github.com/onflow/flips/issues/318
 
                     // Get the contract-level name and symbol values
-                    let contractLevel = NFTAccessory.resolveContractView(
+                    let contractLevel = EventPass.resolveContractView(
                             resourceType: nil,
                             viewType: Type<MetadataViews.EVMBridgedMetadata>()
                         ) as! MetadataViews.EVMBridgedMetadata?
@@ -195,40 +197,33 @@ access(all) contract NFTAccessory: NonFungibleToken {
         /// getSupportedNFTTypes returns a list of NFT types that this receiver accepts
         access(all) view fun getSupportedNFTTypes(): {Type: Bool} {
             let supportedTypes: {Type: Bool} = {}
-            supportedTypes[Type<@NFTAccessory.NFT>()] = true
+            supportedTypes[Type<@EventPass.NFT>()] = true
             return supportedTypes
         }
 
         /// Returns whether or not the given type is accepted by the collection
         /// A collection that can accept any type should just return true by default
         access(all) view fun isSupportedNFTType(type: Type): Bool {
-            return type == Type<@NFTAccessory.NFT>()
+            return type == Type<@EventPass.NFT>()
         }
 
         /// withdraw removes an NFT from the collection and moves it to the caller
         access(NonFungibleToken.Withdraw) fun withdraw(withdrawID: UInt64): @{NonFungibleToken.NFT} {
+            pre {
+              withdrawID >= 0: "Soul bound token and not transferable"
+            }
             let token <- self.ownedNFTs.remove(key: withdrawID)
-                ?? panic("NFTAccessory.Collection.withdraw: Could not withdraw an NFT with ID "
+                ?? panic("EventPass.Collection.withdraw: Could not withdraw an NFT with ID "
                         .concat(withdrawID.toString())
                         .concat(". Check the submitted ID to make sure it is one that this collection owns."))
 
             return <-token
         }
 
-        access(Sale) fun itemListed(_ listingResouceId: UInt64, nftID: UInt64) {
-          let nft = self.borrowNFT(nftID) as! &NFTAccessory.NFT
-          nft.itemListed(listingResouceId)
-        }
-
-        access(Sale) fun itemUnlisted(nftID: UInt64) {
-          let nft = self.borrowNFT(nftID) as! &NFTAccessory.NFT
-          nft.itemUnlisted()
-        }
-
         /// deposit takes a NFT and adds it to the collections dictionary
         /// and adds the ID to the id array
         access(all) fun deposit(token: @{NonFungibleToken.NFT}) {
-            let token <- token as! @NFTAccessory.NFT
+            let token <- token as! @EventPass.NFT
             let id = token.id
 
             // add the new token to the dictionary which removes the old one
@@ -242,7 +237,7 @@ access(all) contract NFTAccessory: NonFungibleToken {
             // in your contract
             let authTokenRef = (&self.ownedNFTs[id] as auth(NonFungibleToken.Update) &{NonFungibleToken.NFT}?)!
             //authTokenRef.updateTransferDate(date: getCurrentBlock().timestamp)
-            NFTAccessory.emitNFTUpdated(authTokenRef)
+            EventPass.emitNFTUpdated(authTokenRef)
         }
 
         /// getIDs returns an array of the IDs that are in the collection
@@ -271,7 +266,7 @@ access(all) contract NFTAccessory: NonFungibleToken {
         /// and returns it to the caller
         /// @return A an empty collection of the same type
         access(all) fun createEmptyCollection(): @{NonFungibleToken.Collection} {
-            return <-NFTAccessory.createEmptyCollection(nftType: Type<@NFTAccessory.NFT>())
+            return <-EventPass.createEmptyCollection(nftType: Type<@EventPass.NFT>())
         }
     }
 
@@ -305,10 +300,10 @@ access(all) contract NFTAccessory: NonFungibleToken {
                 let collectionData = MetadataViews.NFTCollectionData(
                     storagePath: self.CollectionStoragePath,
                     publicPath: self.CollectionPublicPath,
-                    publicCollection: Type<&NFTAccessory.Collection>(),
-                    publicLinkedType: Type<&NFTAccessory.Collection>(),
+                    publicCollection: Type<&EventPass.Collection>(),
+                    publicLinkedType: Type<&EventPass.Collection>(),
                     createEmptyCollectionFunction: (fun(): @{NonFungibleToken.Collection} {
-                        return <-NFTAccessory.createEmptyCollection(nftType: Type<@NFTAccessory.NFT>())
+                        return <-EventPass.createEmptyCollection(nftType: Type<@EventPass.NFT>())
                     })
                 )
                 return collectionData
@@ -336,7 +331,7 @@ access(all) contract NFTAccessory: NonFungibleToken {
                 // Compose the contract-level URI. In this case, the contract metadata is located on some HTTP host,
                 // but it could be IPFS, S3, a data URL containing the JSON directly, etc.
                 return MetadataViews.EVMBridgedMetadata(
-                    name: "NFTAccessory",
+                    name: "EventPass",
                     symbol: "XMPL",
                     uri: MetadataViews.URI(
                         baseURI: nil, // setting baseURI as nil sets the given value as the uri field value
@@ -354,29 +349,29 @@ access(all) contract NFTAccessory: NonFungibleToken {
 
         /// mintNFT mints a new NFT with a new ID
         /// and returns it to the calling context
-        access(account) fun mintNFT(
+        access(all) fun mintNFT(
+            recipient: &{NonFungibleToken.Receiver},
             name: String,
             description: String,
             thumbnail: String,
-            equipmentType: String,
-            score: UFix64,
-            max: UFix64,
-            descriptionRarity: String
-        ): @NFTAccessory.NFT {
+            eventType: UInt8,
+            eventID: UInt64,
+        ) {
 
             let metadata: {String: AnyStruct} = {}
             let currentBlock = getCurrentBlock()
             metadata["mintedBlock"] = currentBlock.height
             metadata["mintedTime"] = currentBlock.timestamp
-            metadata["rarity"] = MetadataViews.Rarity(score: score, max: max, description: descriptionRarity)
-
+            metadata["eventType"] = eventType
+            metadata["eventID"] = eventID
             // create a new NFT
             var newNFT <- create NFT(
                 name: name,
                 description: description,
                 thumbnail: thumbnail,
-                equipmentType: equipmentType,
                 metadata: metadata,
+                eventType: eventType,
+                eventID: eventID
             )
 
             emit Minted(type: newNFT.getType().identifier,
@@ -385,25 +380,28 @@ access(all) contract NFTAccessory: NonFungibleToken {
                         minterAddress: self.owner?.address,
                         minterUUID: self.uuid,
                         name: name,
-                        description: description)
+                        description: description,
+                        eventType: eventType,
+                        eventID: eventID
+                        )
 
-            return <-newNFT
+            recipient.deposit(token: <-newNFT)
         }
     }
 
     init() {
 
         // Set the named paths
-        self.CollectionStoragePath = /storage/NFTAccessoryCollection
-        self.CollectionPublicPath = /public/NFTAccessoryCollection
-        self.MinterStoragePath = /storage/NFTAccessoryMinter
+        self.CollectionStoragePath = /storage/EventPassCollection
+        self.CollectionPublicPath = /public/EventPassCollection
+        self.MinterStoragePath = /storage/EventPassMinter
 
         // Create a Collection resource and save it to storage
         let collection <- create Collection()
         self.account.storage.save(<-collection, to: self.CollectionStoragePath)
 
         // create a public capability for the collection
-        let collectionCap = self.account.capabilities.storage.issue<&NFTAccessory.Collection>(self.CollectionStoragePath)
+        let collectionCap = self.account.capabilities.storage.issue<&EventPass.Collection>(self.CollectionStoragePath)
         self.account.capabilities.publish(collectionCap, at: self.CollectionPublicPath)
 
         // Create a Minter resource and save it to storage

@@ -6,6 +6,18 @@
 				"testing": "0000000000000007"
 			}
 		},
+		"EventManager": {
+			"source": "cadence/contracts/EventManager.cdc",
+			"aliases": {
+				"testing": "0000000000000007"
+			}
+		},
+		"EventPass": {
+			"source": "cadence/contracts/EventPass.cdc",
+			"aliases": {
+				"testing": "0000000000000007"
+			}
+		},
 		"NFTAccessory": {
 			"source": "cadence/contracts/NFTAccessory.cdc",
 			"aliases": {
@@ -123,7 +135,7 @@
 	"accounts": {
 		"a": {
 			"address": "179b6b1cb6755e31",
-			"key": "eb7587ec60660c8ed4267d5b16f5d73be8a5837f060b362a4fb6864d2c70e9f8"
+			"key": "5593b9b88c4ea1271cb1af9b018ab0295c6c2091597a299fdf023dbbb0869157"
 		},
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
@@ -143,6 +155,8 @@
 				"MetadataViews",
 				"RandomConsumer",
 				"Xorshift128plus",
+				"EventManager",
+				"EventPass",
 				"NFTAccessory",
 				"RandomBeaconHistory",
 				"AccessoryPack",
