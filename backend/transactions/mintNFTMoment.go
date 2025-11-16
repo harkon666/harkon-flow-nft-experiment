@@ -21,48 +21,79 @@ const mintNFTMomentScriptTemplate = `
 import NonFungibleToken from 0x%s
 import NFTMoment from 0x%s
 import MetadataViews from 0x%s
+import EventPass from 0x%s
 
 transaction(
     recipient: Address,
+    eventPassID: UInt64,
     name: String,
     description: String,
-    thumbnail: String
+    thumbnail: String,
+    useFreeMint: Bool,
+    tier: UInt8
 ) {
 
+    /// local variable for storing the minter reference
     let minter: &NFTMoment.NFTMinter
-    let recipientCollectionRef: &{NonFungibleToken.Receiver}
+    let adminEventPass: &EventPass.NFTMinter
+
+    /// Reference to the receiver's collection
+    let recipientCollectionRef: &NFTMoment.Collection
+    let recipientPass: &EventPass.NFT
 
     prepare(signer: auth(BorrowValue) &Account) {
 
         let collectionData = NFTMoment.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>()) as! MetadataViews.NFTCollectionData?
-            ?? panic("Could not resolve NFTCollectionData view.")
+            ?? panic("Could not resolve NFTCollectionData view. The NFTMoment contract needs to implement the NFTCollectionData Metadata view in order to execute this transaction")
+        let collectionEventData = EventPass.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>()) as! MetadataViews.NFTCollectionData?
+            ?? panic("Could not resolve NFTCollectionData view. The EventPass contract needs to implement the NFTCollectionData Metadata view in order to execute this transaction")
         
-        // Pinjam Minter milik 'signer' (admin)
         self.minter = signer.storage.borrow<&NFTMoment.NFTMinter>(from: NFTMoment.MinterStoragePath)
-            ?? panic("Minter resource not found in signer's storage")
+            ?? panic("The signer does not store an NFTMoment.Minter object at the path "
+                     .concat(NFTMoment.MinterStoragePath.toString())
+                     .concat("The signer must initialize their account with this minter resource first!"))
+        self.adminEventPass = signer.storage.borrow<&EventPass.NFTMinter>(from: EventPass.MinterStoragePath)
+            ?? panic("The signer does not store an EventPass.Minter object at the path "
+                     .concat(NFTMoment.MinterStoragePath.toString())
+                     .concat("The signer must initialize their account with this minter resource first!"))
 
-        // Pinjam Receiver milik 'recipient'
-        self.recipientCollectionRef = getAccount(recipient).capabilities.borrow<&{NonFungibleToken.Receiver}>(collectionData.publicPath)
-            ?? panic("Recipient's Receiver capability not found")
+        // Borrow the recipient's public NFT collection reference
+        self.recipientCollectionRef = getAccount(recipient).capabilities.borrow<&NFTMoment.Collection>(collectionData.publicPath)
+            ?? panic("The recipient does not have a NonFungibleToken Receiver at "
+                    .concat(collectionData.publicPath.toString())
+                    .concat(" that is capable of receiving an NFT.")
+                    .concat("The recipient must initialize their account with this collection and receiver first!"))
+        let recipientEventPassCollectionRef = getAccount(recipient).capabilities.borrow<&EventPass.Collection>(collectionEventData.publicPath)
+            ?? panic("The recipient does not have a NonFungibleToken Receiver at "
+                    .concat(collectionEventData.publicPath.toString())
+                    .concat(" that is capable of receiving an NFT.")
+                    .concat("The recipient must initialize their account with this collection and receiver first!"))
+        self.recipientPass = recipientEventPassCollectionRef.borrowNFT(eventPassID) as! &EventPass.NFT
     }
 
     execute {
-        // Minter melakukan minting dan deposit
+        // Mint the NFT and deposit it to the recipient's collection
         self.minter.mintNFT(
             recipient: self.recipientCollectionRef,
+            recipientPass: self.recipientPass,
             name: name,
             description: description,
-            thumbnail: thumbnail
-        )
+            thumbnail: thumbnail,
+            useFreeMint: useFreeMint,
+            tier: tier
+        )        
     }
 }
 `
 
 func MintNFTMoment(
 	recipientAddressString string,
+	eventPassID string,
 	name string,
 	description string,
 	thumbnail string,
+	useFreeMint string,
+	tier string,
 ) error {
 
 	// Muat .env
@@ -113,28 +144,36 @@ func MintNFTMoment(
 	// 3. SIAPKAN ARGUMEN (4 Argumen)
 
 	// Helper function untuk argumen String (sama seperti template Anda)
-	makeStrArg := func(s string) (cadence.String, error) {
-		val, err := cadence.NewString(s)
-		if err != nil {
-			return "", fmt.Errorf("gagal membuat argumen string '%s': %w", s, err)
-		}
-		return val, nil
-	}
 
 	// --- Buat Argumen ---
 	recipientAddressArg := cadence.NewAddress(flow.HexToAddress(recipientAddressString))
 
-	nameArg, err := makeStrArg(name)
+	nameArg, err := MakeStrArg(name)
 	if err != nil {
 		return err
 	}
 
-	descriptionArg, err := makeStrArg(description)
+	eventPassIDArg, err := MakeUInt64Arg(eventPassID)
 	if err != nil {
 		return err
 	}
 
-	thumbnailArg, err := makeStrArg(thumbnail)
+	descriptionArg, err := MakeStrArg(description)
+	if err != nil {
+		return err
+	}
+
+	thumbnailArg, err := MakeStrArg(thumbnail)
+	if err != nil {
+		return err
+	}
+
+	useFreeMintArg, err := MakeBoolArg(useFreeMint)
+	if err != nil {
+		return err
+	}
+
+	tierArg, err := MakeUInt8Arg(tier)
 	if err != nil {
 		return err
 	}
@@ -154,9 +193,12 @@ func MintNFTMoment(
 
 	// 5. TAMBAHKAN ARGUMEN
 	_ = tx.AddArgument(recipientAddressArg)
+	_ = tx.AddArgument(eventPassIDArg)
 	_ = tx.AddArgument(nameArg)
 	_ = tx.AddArgument(descriptionArg)
 	_ = tx.AddArgument(thumbnailArg)
+	_ = tx.AddArgument(useFreeMintArg)
+	_ = tx.AddArgument(tierArg)
 
 	// 6. TANDA TANGANI TRANSAKSI
 	err = tx.SignEnvelope(minterFlowAddress, key.Index, signer)

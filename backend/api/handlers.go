@@ -65,6 +65,9 @@ func (h *Handler) mintMoment(c echo.Context) error {
 
 	// 1. Ambil data TEKS dari form multipart
 	recipient := c.FormValue("recipient")
+	eventPassID := c.FormValue("eventPassID")
+	useFreeMint := c.FormValue("useFreeMint")
+	tier := c.FormValue("tier")
 	name := c.FormValue("name")
 	description := c.FormValue("description")
 
@@ -139,9 +142,12 @@ func (h *Handler) mintMoment(c echo.Context) error {
 	//    (Kita ganti 'req.Thumbnail' dengan 'thumbnailUrl')
 	err = transactions.MintNFTMoment(
 		recipient,
+		eventPassID,
 		name,
 		description,
-		thumbnailUrl, // <-- Menggunakan URL IPFS yang baru!
+		thumbnailUrl,
+		useFreeMint,
+		tier, // <-- Menggunakan URL IPFS yang baru!
 	)
 
 	// 9. Tangani hasilnya

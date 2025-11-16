@@ -1,8 +1,6 @@
-//this transaction will be executed in backend, there are 2 tier type "community" and "pro"
-//community = 0, pro = 1
-//for mint nft you need to redeem eventpassID that still not used yet
+//this transaction will be executed in backend
+//there is useFreeMint and can be executed once in lifetime
 
-//tier pro is used for collaboration with pro photographer
 
 import "NonFungibleToken"
 import "NFTMoment"
@@ -59,13 +57,12 @@ transaction(
 
     execute {
         // Mint the NFT and deposit it to the recipient's collection
-        self.minter.mintNFTWithEventPass(
+        self.minter.freeMint(
             recipient: self.recipientCollectionRef,
             recipientPass: self.recipientPass,
             name: name,
             description: description,
             thumbnail: thumbnail,
-            tier: 0
         )        
     }
 }

@@ -380,25 +380,46 @@ access(all) contract NFTMoment: NonFungibleToken {
 
     access(all) resource NFTMinter {
 
-        access(all) fun mintNFT(
+        access(all) fun freeMint(
+            recipient: &NFTMoment.Collection,
+            recipientPass: &EventPass.NFT?,
+            name: String,
+            description: String,
+            thumbnail: String,
+        ) {
+            let metadata: {String: AnyStruct} = {}
+            let currentBlock = getCurrentBlock()
+            let appliedTier = NFTMoment.applyTier(Tier(rawValue: 0)!)
+            metadata["tier"] = appliedTier
+            metadata["mintedBlock"] = currentBlock.height
+            metadata["mintedTime"] = currentBlock.timestamp
+
+            let newNFT <- create NFT(
+                name: name,
+                description: description,
+                thumbnail: thumbnail,
+                metadata: metadata,
+                tier: appliedTier
+            )
+
+            let id = newNFT.id
+            emit Minted(recipient: recipient.owner!.address, id: id, name: name, description: description, thumbnail: thumbnail)
+
+            recipient.deposit(token: <-newNFT)
+        }
+
+        access(all) fun mintNFTWithEventPass(
             recipient: &NFTMoment.Collection,
             recipientPass: &EventPass.NFT,
             name: String,
             description: String,
             thumbnail: String,
-            useFreeMint: Bool?,
             tier: UInt8
         ) {
             pre {
-              useFreeMint == true || (recipientPass.isUsed == false): "Event Pass already used"
-              useFreeMint == false || (useFreeMint == true && recipient.isUsedFreeMint == false): "Free Mint already used"
+              recipient.isUsedFreeMint == false: "Free Mint already used"
             }
-            
-            if useFreeMint == true {
-              recipient.useFreeMint()
-            } else {
-              recipientPass.useEventPass()
-            }
+            recipientPass.useEventPass()
 
             let metadata: {String: AnyStruct} = {}
             let currentBlock = getCurrentBlock()
