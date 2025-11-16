@@ -15,7 +15,6 @@ transaction(
     name: String,
     description: String,
     thumbnail: String,
-    useFreeMint: Bool,
     tier: UInt8
 ) {
 

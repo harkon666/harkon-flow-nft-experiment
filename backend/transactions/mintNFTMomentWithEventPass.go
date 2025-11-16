@@ -17,7 +17,7 @@ import (
 
 // Ini adalah skrip transaksi minting Anda
 // Saya telah menambahkan '0x%s' agar kita bisa menyuntikkan alamat kontrak
-const mintFreeNFTMomentScriptTemplate = `
+const mintNFTMomentWithEventPassScriptTemplate = `
 import NonFungibleToken from 0x%s
 import NFTMoment from 0x%s
 import MetadataViews from 0x%s
@@ -29,7 +29,6 @@ transaction(
     name: String,
     description: String,
     thumbnail: String,
-    useFreeMint: Bool,
     tier: UInt8
 ) {
 
@@ -73,23 +72,25 @@ transaction(
 
     execute {
         // Mint the NFT and deposit it to the recipient's collection
-        self.minter.freeMint(
+        self.minter.mintNFTWithEventPass(
             recipient: self.recipientCollectionRef,
             recipientPass: self.recipientPass,
             name: name,
             description: description,
             thumbnail: thumbnail,
+            tier: 0
         )        
     }
 }
 `
 
-func MintNFTMoment(
+func MintNFTMomentWithEventPass(
 	recipientAddressString string,
 	eventPassID string,
 	name string,
 	description string,
 	thumbnail string,
+	tier string,
 ) error {
 
 	// Muat .env
@@ -135,7 +136,7 @@ func MintNFTMoment(
 	// 2. BUAT SKRIP TRANSAKSI
 	// Kita suntikkan alamat minter (yang juga alamat deployer) 2x
 	// 1x untuk 'NFTMoment' dan 1x untuk 'MetadataViews'
-	script := []byte(fmt.Sprintf(mintFreeNFTMomentScriptTemplate, deployerAddress, deployerAddress, deployerAddress))
+	script := []byte(fmt.Sprintf(mintNFTMomentWithEventPassScriptTemplate, deployerAddress, deployerAddress, deployerAddress, deployerAddress))
 
 	// 3. SIAPKAN ARGUMEN (4 Argumen)
 
@@ -164,6 +165,11 @@ func MintNFTMoment(
 		return err
 	}
 
+	tierArg, err := MakeUInt8Arg(tier)
+	if err != nil {
+		return err
+	}
+
 	// 4. BUAT TRANSAKSI
 	latestBlock, err := flowClient.GetLatestBlock(ctx, true)
 	if err != nil {
@@ -183,6 +189,7 @@ func MintNFTMoment(
 	_ = tx.AddArgument(nameArg)
 	_ = tx.AddArgument(descriptionArg)
 	_ = tx.AddArgument(thumbnailArg)
+	_ = tx.AddArgument(tierArg)
 
 	// 6. TANDA TANGANI TRANSAKSI
 	err = tx.SignEnvelope(minterFlowAddress, key.Index, signer)

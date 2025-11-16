@@ -61,12 +61,111 @@ func (h *Handler) getMoments(c echo.Context) error {
 	return c.JSON(http.StatusOK, moments)
 }
 
-func (h *Handler) mintMoment(c echo.Context) error {
+func (h *Handler) freeMintMoment(c echo.Context) error {
+
+	// 1. Ambil data TEKS dari form multipart
+	recipient := c.FormValue("recipient")
+	name := c.FormValue("name")
+	description := c.FormValue("description")
+
+	// 2. Validasi input teks
+	if recipient == "" || name == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "recipient dan name adalah field wajib",
+		})
+	}
+
+	// 3. Ambil data FILE dari form multipart
+	// "thumbnail" adalah 'name' dari input file di frontend
+	file, err := c.FormFile("thumbnail")
+	if err != nil {
+		log.Println("Error mengambil form file 'thumbnail':", err)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "file 'thumbnail' wajib ada"})
+	}
+
+	// 4. Buka file yang di-upload
+	src, err := file.Open()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Gagal membuka file yang di-upload"})
+	}
+	defer src.Close()
+
+	// 5. Simpan file ke path sementara (temp)
+	// (Di aplikasi produksi, gunakan nama unik/random)
+	tempFilePath := "moment_" + fmt.Sprint(time.Now().UnixNano()) + "_" + file.Filename
+	dst, err := os.Create(tempFilePath)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Gagal membuat file sementara"})
+	}
+
+	// Salin file yang di-upload ke file sementara
+	if _, err = io.Copy(dst, src); err != nil {
+		dst.Close()             // Tutup dulu sebelum hapus
+		os.Remove(tempFilePath) // Hapus file temp jika copy gagal
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Gagal menyimpan file sementara"})
+	}
+	dst.Close() // Tutup file setelah selesai 'copy'
+
+	// --- Jadwalkan PENGHAPUSAN file sementara ---
+	// 'defer' akan berjalan di akhir fungsi 'mintMoment'
+	defer func() {
+		log.Println("Menghapus file sementara:", tempFilePath)
+		os.Remove(tempFilePath)
+	}()
+
+	// 6. --- TAHAP MODERASI (PENTING) ---
+	// Di sinilah Anda memanggil Google Cloud Vision / AWS Rekognition
+	// pada 'tempFilePath'
+	//
+	// isSafe, err := runModeration(tempFilePath)
+	// if err != nil || !isSafe {
+	// 	  return c.JSON(http.StatusForbidden, map[string]string{"error": "Konten foto dilarang"})
+	// }
+	// log.Println("Moderasi AI lolos.")
+
+	// 7. Upload file yang aman ke Pinata
+	log.Println("Mengunggah", tempFilePath, "ke Pinata...")
+	pinataResp, err := utils.UploadToPinata(tempFilePath)
+	if err != nil {
+		log.Printf("Gagal upload ke Pinata: %v", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Gagal mengunggah ke IPFS"})
+	}
+
+	// Buat URL IPFS yang benar
+	thumbnailUrl := fmt.Sprintf("https://white-lazy-marten-351.mypinata.cloud/ipfs/%s", pinataResp.IpfsHash)
+	log.Println("Berhasil di-pin ke Pinata:", thumbnailUrl)
+
+	// 8. Panggil transaksi blockchain dengan URL IPFS baru
+	//    (Kita ganti 'req.Thumbnail' dengan 'thumbnailUrl')
+	err = transactions.FreeMintNFTMoment(
+		recipient,
+		name,
+		description,
+		thumbnailUrl,
+	)
+
+	// 9. Tangani hasilnya
+	if err != nil {
+		log.Printf("Gagal menjalankan transaksi mint: %v", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	// 10. Jika sukses, kirim respon 201 Created
+	return c.JSON(http.StatusCreated, map[string]string{
+		"message":   "NFT minted successfully!",
+		"recipient": recipient,
+		"name":      name,
+		"thumbnail": thumbnailUrl, // Kirimkan URL IPFS baru ke frontend
+	})
+}
+
+func (h *Handler) mintMomentWithEventPass(c echo.Context) error {
 
 	// 1. Ambil data TEKS dari form multipart
 	recipient := c.FormValue("recipient")
 	eventPassID := c.FormValue("eventPassID")
-	useFreeMint := c.FormValue("useFreeMint")
 	tier := c.FormValue("tier")
 	name := c.FormValue("name")
 	description := c.FormValue("description")
@@ -135,19 +234,18 @@ func (h *Handler) mintMoment(c echo.Context) error {
 	}
 
 	// Buat URL IPFS yang benar
-	thumbnailUrl := fmt.Sprintf("ipfs://%s", pinataResp.IpfsHash)
+	thumbnailUrl := fmt.Sprintf("https://white-lazy-marten-351.mypinata.cloud/ipfs/%s", pinataResp.IpfsHash)
 	log.Println("Berhasil di-pin ke Pinata:", thumbnailUrl)
 
 	// 8. Panggil transaksi blockchain dengan URL IPFS baru
 	//    (Kita ganti 'req.Thumbnail' dengan 'thumbnailUrl')
-	err = transactions.MintNFTMoment(
+	err = transactions.MintNFTMomentWithEventPass(
 		recipient,
 		eventPassID,
 		name,
 		description,
 		thumbnailUrl,
-		useFreeMint,
-		tier, // <-- Menggunakan URL IPFS yang baru!
+		tier,
 	)
 
 	// 9. Tangani hasilnya
