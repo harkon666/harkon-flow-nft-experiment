@@ -3,6 +3,7 @@ import "FungibleTokenMetadataViews"
 import "NonFungibleToken"
 import "MetadataViews"
 import "NFTStorefrontV2"
+import "NFTMoment"
 
 /// Transaction used to facilitate the creation of the listing under the signer's owned storefront resource.
 /// It accepts the certain details from the signer,i.e. - 
@@ -32,6 +33,7 @@ transaction(
     let storefront: auth(NFTStorefrontV2.CreateListing, NFTStorefrontV2.RemoveListing) &NFTStorefrontV2.Storefront
     var saleCuts: [NFTStorefrontV2.SaleCut]
     var marketplacesCapability: [Capability<&{FungibleToken.Receiver}>]
+    // let accessoryCollection: auth(NFTMoment.Sale) &NFTMoment.Collection
 
     prepare(acct: auth(BorrowValue, IssueStorageCapabilityController, PublishCapability, SaveValue, StorageCapabilities) &Account) {
 
@@ -65,6 +67,9 @@ transaction(
         ) as? FungibleTokenMetadataViews.FTVaultData
             ?? panic("Could not construct valid FT type and view from identifier \(ftTypeIdentifier)")
         
+        // self.accessoryCollection = acct.storage.borrow<auth(NFTMoment.Sale) &NFTMoment.Collection>(from: collectionData.storagePath)
+        //     ?? panic("no ressource with auth sale")
+
         self.saleCuts = []
         self.marketplacesCapability = []
 
@@ -158,7 +163,7 @@ transaction(
             self.storefront.removeListing(listingResourceID: listingID)
         }
         // Create listing
-        self.storefront.createListing(
+        let listingResourceID = self.storefront.createListing(
             nftProviderCapability: self.nftProvider,
             nftType: nftType,
             nftID: saleItemID,
@@ -169,5 +174,7 @@ transaction(
             commissionAmount: commissionAmount,
             expiry: expiry
         )
+
+        // self.accessoryCollection.itemListed(listingResourceID, nftID: saleItemID)
     }
 }

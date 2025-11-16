@@ -1,4 +1,4 @@
-import "EventPass"
+import "NFTMoment"
 import "MetadataViews"
 import "ViewResolver"
 
@@ -60,10 +60,10 @@ access(all) struct NFTView {
 access(all) fun main(address: Address, id: UInt64): NFTView {
     let account = getAccount(address)
 
-    let collectionData = EventPass.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>()) as! MetadataViews.NFTCollectionData?
-            ?? panic("Could not resolve NFTCollectionData view. The EventPass contract needs to implement the NFTCollectionData Metadata view in order to execute this transaction")
+    let collectionData = NFTMoment.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>()) as! MetadataViews.NFTCollectionData?
+            ?? panic("Could not resolve NFTCollectionData view. The NFTMoment contract needs to implement the NFTCollectionData Metadata view in order to execute this transaction")
 
-    let collection = account.capabilities.borrow<&EventPass.Collection>(
+    let collection = account.capabilities.borrow<&NFTMoment.Collection>(
             collectionData.publicPath
     ) ?? panic("The account ".concat(address.toString()).concat(" does not have a NonFungibleToken Collection at ")
                 .concat(collectionData.publicPath.toString())
