@@ -17,7 +17,7 @@ import (
 
 // Ini adalah skrip transaksi minting Anda
 // Saya telah menambahkan '0x%s' agar kita bisa menyuntikkan alamat kontrak
-const mintNFTMomentScriptTemplate = `
+const mintFreeNFTMomentScriptTemplate = `
 import NonFungibleToken from 0x%s
 import NFTMoment from 0x%s
 import MetadataViews from 0x%s
@@ -73,14 +73,12 @@ transaction(
 
     execute {
         // Mint the NFT and deposit it to the recipient's collection
-        self.minter.mintNFT(
+        self.minter.freeMint(
             recipient: self.recipientCollectionRef,
             recipientPass: self.recipientPass,
             name: name,
             description: description,
             thumbnail: thumbnail,
-            useFreeMint: useFreeMint,
-            tier: tier
         )        
     }
 }
@@ -92,8 +90,6 @@ func MintNFTMoment(
 	name string,
 	description string,
 	thumbnail string,
-	useFreeMint string,
-	tier string,
 ) error {
 
 	// Muat .env
@@ -139,7 +135,7 @@ func MintNFTMoment(
 	// 2. BUAT SKRIP TRANSAKSI
 	// Kita suntikkan alamat minter (yang juga alamat deployer) 2x
 	// 1x untuk 'NFTMoment' dan 1x untuk 'MetadataViews'
-	script := []byte(fmt.Sprintf(mintNFTMomentScriptTemplate, deployerAddress, deployerAddress, deployerAddress))
+	script := []byte(fmt.Sprintf(mintFreeNFTMomentScriptTemplate, deployerAddress, deployerAddress, deployerAddress))
 
 	// 3. SIAPKAN ARGUMEN (4 Argumen)
 
@@ -168,16 +164,6 @@ func MintNFTMoment(
 		return err
 	}
 
-	useFreeMintArg, err := MakeBoolArg(useFreeMint)
-	if err != nil {
-		return err
-	}
-
-	tierArg, err := MakeUInt8Arg(tier)
-	if err != nil {
-		return err
-	}
-
 	// 4. BUAT TRANSAKSI
 	latestBlock, err := flowClient.GetLatestBlock(ctx, true)
 	if err != nil {
@@ -197,8 +183,6 @@ func MintNFTMoment(
 	_ = tx.AddArgument(nameArg)
 	_ = tx.AddArgument(descriptionArg)
 	_ = tx.AddArgument(thumbnailArg)
-	_ = tx.AddArgument(useFreeMintArg)
-	_ = tx.AddArgument(tierArg)
 
 	// 6. TANDA TANGANI TRANSAKSI
 	err = tx.SignEnvelope(minterFlowAddress, key.Index, signer)

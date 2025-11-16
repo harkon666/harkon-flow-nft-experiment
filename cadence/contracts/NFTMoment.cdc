@@ -382,7 +382,6 @@ access(all) contract NFTMoment: NonFungibleToken {
 
         access(all) fun freeMint(
             recipient: &NFTMoment.Collection,
-            recipientPass: &EventPass.NFT?,
             name: String,
             description: String,
             thumbnail: String,
