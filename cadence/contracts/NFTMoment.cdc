@@ -5,10 +5,6 @@ import "MetadataViews"
 import "EventPass"
 
 access(all) contract NFTMoment: NonFungibleToken {
-
-    // 3. STATE & EVENT KONTRAK
-    access(all) var totalSupply: UInt64
-
     // Path standar untuk menyimpan data
     access(all) let CollectionStoragePath: StoragePath
     access(all) let CollectionPublicPath: PublicPath
@@ -35,6 +31,11 @@ access(all) contract NFTMoment: NonFungibleToken {
         self.equippedFrame = equippedFrame
       }
     }
+
+    access(all) enum Tier: UInt8 {
+        access(all) case community
+        access(all)case pro
+    }
     // 4. RESOURCE NFT
     // Ini adalah "benda" NFT Anda
     access(all) resource NFT: NonFungibleToken.NFT {
@@ -44,15 +45,17 @@ access(all) contract NFTMoment: NonFungibleToken {
         // Ini adalah data yang Anda simpan ON-CHAIN
         access(all) let name: String
         access(all) let description: String
-        access(all) let thumbnail: String // Ini akan menjadi URL atau IPFS CID
+        access(all) let thumbnail: String
         access(self) let metadata: {String: AnyStruct}
         access(all) var equippedFrame: @NFTAccessory.NFT?
+        access(all) var tier: String
 
         init(
             name: String,
             description: String,
             thumbnail: String,
             metadata: {String: AnyStruct},
+            tier: String
         ) {
             self.id = self.uuid // ID unik dibuat otomatis
             self.name = name
@@ -60,6 +63,7 @@ access(all) contract NFTMoment: NonFungibleToken {
             self.thumbnail = thumbnail
             self.metadata = metadata
             self.equippedFrame<-nil
+            self.tier = tier
         }
 
         access(all) fun createEmptyCollection(): @{NonFungibleToken.Collection} {
@@ -92,7 +96,6 @@ access(all) contract NFTMoment: NonFungibleToken {
           return <- unequippedAccessory as! @NFTAccessory.NFT
         }
 
-        // getViews() memberi tahu marketplace tampilan apa saja yang Anda dukung
         access(all) view fun getViews(): [Type] {
             return [
                 Type<MetadataViews.Display>(),
@@ -256,8 +259,6 @@ access(all) contract NFTMoment: NonFungibleToken {
         return nil
     }
 
-    // 5. RESOURCE COLLECTION (KOLEKSI)
-    // Ini adalah "brankas" yang dimiliki setiap pengguna untuk menyimpan NFT Anda
     access(all) resource Collection: NonFungibleToken.Collection {
         
         access(all) var ownedNFTs: @{UInt64: {NonFungibleToken.NFT}}
@@ -276,14 +277,16 @@ access(all) contract NFTMoment: NonFungibleToken {
         access(all) view fun isSupportedNFTType(type: Type): Bool {
             return type == Type<@NFTMoment.NFT>()
         }
-        // --- Fungsi Standar (Wajib) ---
 
+
+        //in this function only can withdraw if there is no equipped accessories
         access(NonFungibleToken.Withdraw) fun withdraw(withdrawID: UInt64): @{NonFungibleToken.NFT} {
+            let nft = self.borrowNFT(withdrawID) as! &NFTMoment.NFT
+            assert(nft.equippedFrame == nil, message: "Please unequip your accessory")
             let token <- self.ownedNFTs.remove(key: withdrawID)
                 ?? panic("NFTMoment.Collection.withdraw: Could not withdraw an NFT with ID "
                         .concat(withdrawID.toString())
                         .concat(". Check the submitted ID to make sure it is one that this collection owns."))
-
             return <-token
         }
 
@@ -295,14 +298,6 @@ access(all) contract NFTMoment: NonFungibleToken {
             let oldToken <- self.ownedNFTs[token.id] <- token
 
             destroy oldToken
-
-            // This code is for testing purposes only
-            // Do not add to your contract unless you have a specific
-            // reason to want to emit the NFTUpdated event somewhere
-            // in your contract
-            let authTokenRef = (&self.ownedNFTs[id] as auth(NonFungibleToken.Update) &{NonFungibleToken.NFT}?)!
-            //authTokenRef.updateTransferDate(date: getCurrentBlock().timestamp)
-            NFTMoment.emitNFTUpdated(authTokenRef)
         }
 
         access(contract) fun useFreeMint() {
@@ -344,37 +339,22 @@ access(all) contract NFTMoment: NonFungibleToken {
           return nil
         }
 
-        // --- MetadataViews untuk Koleksi ---
-        
-        access(all) view fun getViews(): [Type] {
-            // Tampilan apa yang didukung oleh KOLEKSI ini?
-            return [
-                Type<MetadataViews.Display>(),
-                Type<MetadataViews.ExternalURL>()
-            ]
-        }
-
         access(all) fun createEmptyCollection(): @{NonFungibleToken.Collection} {
             return <-NFTMoment.createEmptyCollection(nftType: Type<@NFTMoment.NFT>())
         }
     }
 
     access(all) fun unwrapRarity(rawRarityValue: AnyStruct??): MetadataViews.Rarity? {
-      if let unwrappedOnce: AnyStruct? = rawRarityValue {   
-          // 'unwrappedOnce' sekarang bertipe AnyStruct?
+      if let unwrappedOnce: AnyStruct? = rawRarityValue {
 
-          // 3. Buka lapisan KEDUA (dari return fungsi) DAN LAKUKAN CAST
           if let rarity = unwrappedOnce as? MetadataViews.Rarity {
               
-              // Berhasil! 'rarity' sekarang bertipe MetadataViews.Rarity
               return rarity
           }
-          // Jika 'as?' gagal (misal, tipenya salah), frameTraitRarity tetap nil
       }
       return nil
     }
-    // 6. FUNGSI PUBLIK UNTUK MEMBUAT KOLEKSI
-    // Pengguna akan memanggil ini untuk mendapatkan "brankas" mereka
+
     access(all) fun createEmptyCollection(nftType: Type): @{NonFungibleToken.Collection} {
         return <- create Collection()
     }
@@ -387,20 +367,27 @@ access(all) contract NFTMoment: NonFungibleToken {
         ]
     }
 
+    access(all) fun applyTier(_ tier: Tier): String {
+      switch tier {
+        case Tier.community:
+          return "community"
+        case Tier.pro:
+          return "pro"
+        default:
+          return "not a tier"
+      }
+    }
 
-    // 7. RESOURCE MINTER (PENCETAK)
-    // Ini adalah "kunci" admin. HANYA deployer yang memilikinya.
-    // Backend Anda akan menggunakan ini.
     access(all) resource NFTMinter {
 
-        // Fungsi yang dipanggil backend Anda
         access(all) fun mintNFT(
             recipient: &NFTMoment.Collection,
             recipientPass: &EventPass.NFT,
             name: String,
             description: String,
             thumbnail: String,
-            useFreeMint: Bool?
+            useFreeMint: Bool?,
+            tier: UInt8
         ) {
             pre {
               useFreeMint == true || (recipientPass.isUsed == false): "Event Pass already used"
@@ -415,29 +402,28 @@ access(all) contract NFTMoment: NonFungibleToken {
 
             let metadata: {String: AnyStruct} = {}
             let currentBlock = getCurrentBlock()
+            let appliedTier = NFTMoment.applyTier(Tier(rawValue: tier)!)
+            metadata["tier"] = appliedTier
             metadata["mintedBlock"] = currentBlock.height
             metadata["mintedTime"] = currentBlock.timestamp
-            // Buat NFT
+
             let newNFT <- create NFT(
                 name: name,
                 description: description,
                 thumbnail: thumbnail,
-                metadata: metadata
+                metadata: metadata,
+                tier: appliedTier
             )
 
             let id = newNFT.id
 
-            NFTMoment.totalSupply = NFTMoment.totalSupply + 1
             emit Minted(recipient: recipient.owner!.address, id: id, name: name, description: description, thumbnail: thumbnail)
 
             recipient.deposit(token: <-newNFT)
         }
     }
 
-    init() {
-        self.totalSupply = 0
-        
-        // Tentukan path
+    init() {        
         self.CollectionStoragePath = /storage/NFTMomentCollection
         self.CollectionPublicPath = /public/NFTMomentReceiver
         self.MinterStoragePath = /storage/NFTMomentMinter
@@ -447,7 +433,7 @@ access(all) contract NFTMoment: NonFungibleToken {
 
         let collectionCap = self.account.capabilities.storage.issue<&NFTMoment.Collection>(self.CollectionStoragePath)
         self.account.capabilities.publish(collectionCap, at: self.CollectionPublicPath)
-        // Buat dan simpan Minter
+
         let minter <- create NFTMinter()
         self.account.storage.save(<-minter, to: self.MinterStoragePath)
     }

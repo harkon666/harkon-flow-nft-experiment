@@ -1,8 +1,9 @@
-/// This script uses the NFTMinter resource to mint a new NFT
-/// It must be run with the account that has the minter resource
-/// stored in /storage/NFTMinter
-///
-/// The royalty arguments indicies must be aligned
+//this transaction will be executed in backend, there are 2 tier type "community" and "pro"
+//community = 0, pro = 1
+//there is useFreeMint and can be executed once in lifetime
+//for mint nft you need to redeem eventpassID that still not used yet
+
+//tier pro is used for collaboration with pro photographer
 
 import "NonFungibleToken"
 import "NFTMoment"
@@ -15,7 +16,8 @@ transaction(
     name: String,
     description: String,
     thumbnail: String,
-    useFreeMint: Bool
+    useFreeMint: Bool,
+    tier: UInt8
 ) {
 
     /// local variable for storing the minter reference
@@ -33,7 +35,6 @@ transaction(
         let collectionEventData = EventPass.resolveContractView(resourceType: nil, viewType: Type<MetadataViews.NFTCollectionData>()) as! MetadataViews.NFTCollectionData?
             ?? panic("Could not resolve NFTCollectionData view. The EventPass contract needs to implement the NFTCollectionData Metadata view in order to execute this transaction")
         
-        // borrow a reference to the NFTMinter resource in storage
         self.minter = signer.storage.borrow<&NFTMoment.NFTMinter>(from: NFTMoment.MinterStoragePath)
             ?? panic("The signer does not store an NFTMoment.Minter object at the path "
                      .concat(NFTMoment.MinterStoragePath.toString())
@@ -65,7 +66,8 @@ transaction(
             name: name,
             description: description,
             thumbnail: thumbnail,
-            useFreeMint: useFreeMint
+            useFreeMint: useFreeMint,
+            tier: tier
         )        
     }
 }

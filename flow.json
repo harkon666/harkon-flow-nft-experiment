@@ -29,6 +29,12 @@
 			"aliases": {
 				"testing": "0000000000000007"
 			}
+		},
+		"UserProfile": {
+			"source": "cadence/contracts/UserProfile.cdc",
+			"aliases": {
+				"testing": "0000000000000007"
+			}
 		}
 	},
 	"dependencies": {
@@ -135,7 +141,11 @@
 	"accounts": {
 		"a": {
 			"address": "179b6b1cb6755e31",
-			"key": "5593b9b88c4ea1271cb1af9b018ab0295c6c2091597a299fdf023dbbb0869157"
+			"key": "ec4c50f56ce47c2908dd8dc55ad3eb5c583ad2d3134a57f44e99d03929c76358"
+		},
+		"b": {
+			"address": "f3fcd2c1a78f5eee",
+			"key": "db17372d05f22ce0a2d88d900926a714b5a86125843202fd6105e5781fc0da84"
 		},
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
@@ -159,6 +169,7 @@
 				"EventPass",
 				"NFTAccessory",
 				"RandomBeaconHistory",
+				"UserProfile",
 				"AccessoryPack",
 				"NFTMoment",
 				"NFTStorefrontV2",
