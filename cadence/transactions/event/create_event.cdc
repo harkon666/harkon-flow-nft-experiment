@@ -7,6 +7,7 @@ transaction(
     eventName: String,
     description: String,
     thumbnailURL: String,
+    eventPassImg: String?,
     eventType: UInt8, // 0 = online, 1 = offline
     location: String,
     lat: Fix64,
@@ -22,6 +23,7 @@ transaction(
             eventName: eventName,
             description: description,
             thumbnailURL: thumbnailURL,
+            eventPassImg: eventPassImg,
             eventType: eventType,
             location: location,
             lat: lat,

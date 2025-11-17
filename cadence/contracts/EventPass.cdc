@@ -34,7 +34,8 @@ access(all) contract EventPass: NonFungibleToken {
         name: String,
         description: String,
         eventType: UInt8,
-        eventID: UInt64
+        eventID: UInt64,
+        thumbnail: String
     )
     /// We choose the name NFT here, but this type can have any name now
     /// because the interface does not require it to have a specific name any more
@@ -382,7 +383,8 @@ access(all) contract EventPass: NonFungibleToken {
                         name: name,
                         description: description,
                         eventType: eventType,
-                        eventID: eventID
+                        eventID: eventID,
+                        thumbnail: thumbnail
                         )
 
             recipient.deposit(token: <-newNFT)

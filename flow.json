@@ -141,11 +141,7 @@
 	"accounts": {
 		"a": {
 			"address": "179b6b1cb6755e31",
-			"key": "ec4c50f56ce47c2908dd8dc55ad3eb5c583ad2d3134a57f44e99d03929c76358"
-		},
-		"b": {
-			"address": "f3fcd2c1a78f5eee",
-			"key": "db17372d05f22ce0a2d88d900926a714b5a86125843202fd6105e5781fc0da84"
+			"key": "8d0a594ed419f97e662c63a1eacfbaff785d2e9f2f56d96b279d81821d9be92c"
 		},
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",

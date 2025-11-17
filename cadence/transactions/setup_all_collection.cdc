@@ -60,13 +60,14 @@ transaction {
         let collectionEventPassCap = signer.capabilities.storage.issue<&EventPass.Collection>(collectionEventPassData.storagePath)
         signer.capabilities.publish(collectionEventPassCap, at: collectionEventPassData.publicPath)
 
-        //user profile setup
-        let userProfile <- UserProfile.createEmptyProfile(signer.address)
+        // user profile setup
 
-        signer.storage.save(<-userProfile, to: UserProfile.ProfileStoragePath)
+        let profile: @UserProfile.Profile <- UserProfile.createEmptyProfile()
+        signer.storage.save(<-profile, to: UserProfile.ProfileStoragePath)
+
 
         signer.capabilities.unpublish(UserProfile.ProfilePublicPath)
-        let userProfileCap = signer.capabilities.storage.issue<&UserProfile.Profile>(collectionEventPassData.storagePath)
+        let userProfileCap = signer.capabilities.storage.issue<&UserProfile.Profile>(UserProfile.ProfileStoragePath)
         signer.capabilities.publish(userProfileCap, at: UserProfile.ProfilePublicPath)
     }
 }

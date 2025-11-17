@@ -30,13 +30,16 @@ transaction(
     }
 
     execute {
-        // Panggil fungsi 'checkInUserToEvent' di dalam resource Admin
+        let thumbnail = self.eventRef.eventPassImg != nil ?
+          self.eventRef.eventPassImg?.uri() :
+          "https://white-lazy-marten-351.mypinata.cloud/ipfs/bafybeibv7mz4yvpuw5ejbovka3h2zhrzyf7jptikz7fzsuprlgw3h6qtnq"
+
         self.adminRef.checkInUserToEvent(eventID: eventID, userAddress: userAddress)
         self.eventPassMinterRef.mintNFT(
           recipient: self.recipient,
           name: self.eventRef.eventName,
           description: self.eventRef.description,
-          thumbnail: self.eventRef.thumbnail.uri(),
+          thumbnail: thumbnail!,
           eventType: self.eventRef.eventType.rawValue,
           eventID: self.eventRef.eventID
         )

@@ -35,7 +35,8 @@ access(all) contract NFTAccessory: NonFungibleToken {
         minterAddress: Address?,
         minterUUID: UInt64,
         name: String,
-        description: String
+        description: String,
+        thumbnail: String,
     )
 
     /// We choose the name NFT here, but this type can have any name now
@@ -385,7 +386,9 @@ access(all) contract NFTAccessory: NonFungibleToken {
                         minterAddress: self.owner?.address,
                         minterUUID: self.uuid,
                         name: name,
-                        description: description)
+                        description: description,
+                        thumbnail: thumbnail
+                      )
 
             return <-newNFT
         }

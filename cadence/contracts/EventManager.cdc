@@ -41,6 +41,7 @@ access(all) contract EventManager {
         access(all) let eventName: String
         access(all) let description: String
         access(all) let thumbnail: MetadataViews.HTTPFile // URL Gambar
+        access(all) let eventPassImg: MetadataViews.HTTPFile?
         access(all) let eventType: EventManager.eventType // "online" atau "offline"
         access(all) let location: String // Bisa URL (online) atau Alamat (offline)
         access(all) let createdAt: UFix64 // Timestamp
@@ -56,6 +57,7 @@ access(all) contract EventManager {
             eventName: String,
             description: String,
             thumbnail: MetadataViews.HTTPFile,
+            eventPassImg: MetadataViews.HTTPFile?,
             eventType: UInt8,
             location: String,
             createdAt: UFix64,
@@ -70,6 +72,7 @@ access(all) contract EventManager {
             self.eventName = eventName
             self.description = description
             self.thumbnail = thumbnail
+            self.eventPassImg = eventPassImg
             self.eventType = EventManager.eventType(rawValue: eventType)!
             self.location = location
             self.createdAt= createdAt
@@ -87,6 +90,7 @@ access(all) contract EventManager {
         access(all) let eventName: String
         access(all) let description: String
         access(all) let thumbnail: MetadataViews.HTTPFile
+        access(all) let eventPassImg: MetadataViews.HTTPFile?
         access(all) let eventType: EventManager.eventType
         access(all) let location: String //url if online, location if offline
         access(all) let lat: Fix64
@@ -102,6 +106,7 @@ access(all) contract EventManager {
             eventName: String,
             description: String,
             thumbnail: MetadataViews.HTTPFile,
+            eventPassImg: MetadataViews.HTTPFile?,
             eventType: UInt8,
             location: String,
             lat: Fix64,
@@ -116,6 +121,7 @@ access(all) contract EventManager {
             self.eventName = eventName
             self.description = description
             self.thumbnail = thumbnail
+            self.eventPassImg = eventPassImg
             self.eventType = EventManager.eventType(rawValue: eventType)!
             self.location = location
             self.lat = lat
@@ -153,6 +159,7 @@ access(all) contract EventManager {
                 eventName: self.eventName,
                 description: self.description,
                 thumbnail: self.thumbnail,
+                eventPassImg: self.eventPassImg,
                 eventType: self.eventType.rawValue,
                 location: self.location,
                 createdAt: self.createdAt,
@@ -170,6 +177,7 @@ access(all) contract EventManager {
       eventName: String,
       description: String,
       thumbnailURL: String,
+      eventPassImg: String?,
       eventType: UInt8,
       location: String,
       lat: Fix64,
@@ -184,6 +192,7 @@ access(all) contract EventManager {
           eventName: eventName,
           description: description,
           thumbnail: MetadataViews.HTTPFile(url: thumbnailURL),
+          eventPassImg: eventPassImg != nil ? MetadataViews.HTTPFile(url: thumbnailURL) : nil,
           eventType: eventType,
           location: location,
           lat: lat,
