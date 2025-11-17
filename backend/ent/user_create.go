@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"backend/ent/attendance"
 	"backend/ent/event"
 	"backend/ent/eventpass"
 	"backend/ent/nftaccessory"
@@ -119,6 +120,12 @@ func (_c *UserCreate) SetNillableHighlightedMomentID(v *uint64) *UserCreate {
 	return _c
 }
 
+// SetSocials sets the "socials" field.
+func (_c *UserCreate) SetSocials(v map[string]string) *UserCreate {
+	_c.mutation.SetSocials(v)
+	return _c
+}
+
 // AddEventPassIDs adds the "event_passes" edge to the EventPass entity by IDs.
 func (_c *UserCreate) AddEventPassIDs(ids ...int) *UserCreate {
 	_c.mutation.AddEventPassIDs(ids...)
@@ -177,6 +184,21 @@ func (_c *UserCreate) AddAccessories(v ...*NFTAccessory) *UserCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddAccessoryIDs(ids...)
+}
+
+// AddAttendanceIDs adds the "attendances" edge to the Attendance entity by IDs.
+func (_c *UserCreate) AddAttendanceIDs(ids ...int) *UserCreate {
+	_c.mutation.AddAttendanceIDs(ids...)
+	return _c
+}
+
+// AddAttendances adds the "attendances" edges to the Attendance entity.
+func (_c *UserCreate) AddAttendances(v ...*Attendance) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAttendanceIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -274,6 +296,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldHighlightedMomentID, field.TypeUint64, value)
 		_node.HighlightedMomentID = value
 	}
+	if value, ok := _c.mutation.Socials(); ok {
+		_spec.SetField(user.FieldSocials, field.TypeJSON, value)
+		_node.Socials = value
+	}
 	if nodes := _c.mutation.EventPassesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -331,6 +357,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(nftaccessory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AttendancesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AttendancesTable,
+			Columns: []string{user.AttendancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attendance.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

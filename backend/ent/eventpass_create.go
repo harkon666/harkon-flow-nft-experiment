@@ -28,16 +28,40 @@ func (_c *EventPassCreate) SetPassID(v uint64) *EventPassCreate {
 	return _c
 }
 
-// SetIsRedeemed sets the "is_redeemed" field.
-func (_c *EventPassCreate) SetIsRedeemed(v bool) *EventPassCreate {
-	_c.mutation.SetIsRedeemed(v)
+// SetName sets the "name" field.
+func (_c *EventPassCreate) SetName(v string) *EventPassCreate {
+	_c.mutation.SetName(v)
 	return _c
 }
 
-// SetNillableIsRedeemed sets the "is_redeemed" field if the given value is not nil.
-func (_c *EventPassCreate) SetNillableIsRedeemed(v *bool) *EventPassCreate {
+// SetDescription sets the "description" field.
+func (_c *EventPassCreate) SetDescription(v string) *EventPassCreate {
+	_c.mutation.SetDescription(v)
+	return _c
+}
+
+// SetThumbnail sets the "thumbnail" field.
+func (_c *EventPassCreate) SetThumbnail(v string) *EventPassCreate {
+	_c.mutation.SetThumbnail(v)
+	return _c
+}
+
+// SetEventType sets the "event_type" field.
+func (_c *EventPassCreate) SetEventType(v uint8) *EventPassCreate {
+	_c.mutation.SetEventType(v)
+	return _c
+}
+
+// SetIsUsed sets the "is_used" field.
+func (_c *EventPassCreate) SetIsUsed(v bool) *EventPassCreate {
+	_c.mutation.SetIsUsed(v)
+	return _c
+}
+
+// SetNillableIsUsed sets the "is_used" field if the given value is not nil.
+func (_c *EventPassCreate) SetNillableIsUsed(v *bool) *EventPassCreate {
 	if v != nil {
-		_c.SetIsRedeemed(*v)
+		_c.SetIsUsed(*v)
 	}
 	return _c
 }
@@ -118,9 +142,9 @@ func (_c *EventPassCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *EventPassCreate) defaults() {
-	if _, ok := _c.mutation.IsRedeemed(); !ok {
-		v := eventpass.DefaultIsRedeemed
-		_c.mutation.SetIsRedeemed(v)
+	if _, ok := _c.mutation.IsUsed(); !ok {
+		v := eventpass.DefaultIsUsed
+		_c.mutation.SetIsUsed(v)
 	}
 }
 
@@ -129,8 +153,20 @@ func (_c *EventPassCreate) check() error {
 	if _, ok := _c.mutation.PassID(); !ok {
 		return &ValidationError{Name: "pass_id", err: errors.New(`ent: missing required field "EventPass.pass_id"`)}
 	}
-	if _, ok := _c.mutation.IsRedeemed(); !ok {
-		return &ValidationError{Name: "is_redeemed", err: errors.New(`ent: missing required field "EventPass.is_redeemed"`)}
+	if _, ok := _c.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "EventPass.name"`)}
+	}
+	if _, ok := _c.mutation.Description(); !ok {
+		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "EventPass.description"`)}
+	}
+	if _, ok := _c.mutation.Thumbnail(); !ok {
+		return &ValidationError{Name: "thumbnail", err: errors.New(`ent: missing required field "EventPass.thumbnail"`)}
+	}
+	if _, ok := _c.mutation.EventType(); !ok {
+		return &ValidationError{Name: "event_type", err: errors.New(`ent: missing required field "EventPass.event_type"`)}
+	}
+	if _, ok := _c.mutation.IsUsed(); !ok {
+		return &ValidationError{Name: "is_used", err: errors.New(`ent: missing required field "EventPass.is_used"`)}
 	}
 	if len(_c.mutation.OwnerIDs()) == 0 {
 		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required edge "EventPass.owner"`)}
@@ -168,9 +204,25 @@ func (_c *EventPassCreate) createSpec() (*EventPass, *sqlgraph.CreateSpec) {
 		_spec.SetField(eventpass.FieldPassID, field.TypeUint64, value)
 		_node.PassID = value
 	}
-	if value, ok := _c.mutation.IsRedeemed(); ok {
-		_spec.SetField(eventpass.FieldIsRedeemed, field.TypeBool, value)
-		_node.IsRedeemed = value
+	if value, ok := _c.mutation.Name(); ok {
+		_spec.SetField(eventpass.FieldName, field.TypeString, value)
+		_node.Name = value
+	}
+	if value, ok := _c.mutation.Description(); ok {
+		_spec.SetField(eventpass.FieldDescription, field.TypeString, value)
+		_node.Description = value
+	}
+	if value, ok := _c.mutation.Thumbnail(); ok {
+		_spec.SetField(eventpass.FieldThumbnail, field.TypeString, value)
+		_node.Thumbnail = value
+	}
+	if value, ok := _c.mutation.EventType(); ok {
+		_spec.SetField(eventpass.FieldEventType, field.TypeUint8, value)
+		_node.EventType = value
+	}
+	if value, ok := _c.mutation.IsUsed(); ok {
+		_spec.SetField(eventpass.FieldIsUsed, field.TypeBool, value)
+		_node.IsUsed = value
 	}
 	if nodes := _c.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

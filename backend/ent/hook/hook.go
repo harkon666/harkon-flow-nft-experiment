@@ -8,6 +8,18 @@ import (
 	"fmt"
 )
 
+// The AttendanceFunc type is an adapter to allow the use of ordinary
+// function as Attendance mutator.
+type AttendanceFunc func(context.Context, *ent.AttendanceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AttendanceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AttendanceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AttendanceMutation", m)
+}
+
 // The EventFunc type is an adapter to allow the use of ordinary
 // function as Event mutator.
 type EventFunc func(context.Context, *ent.EventMutation) (ent.Value, error)

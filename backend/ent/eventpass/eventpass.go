@@ -14,8 +14,16 @@ const (
 	FieldID = "id"
 	// FieldPassID holds the string denoting the pass_id field in the database.
 	FieldPassID = "pass_id"
-	// FieldIsRedeemed holds the string denoting the is_redeemed field in the database.
-	FieldIsRedeemed = "is_redeemed"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
+	// FieldThumbnail holds the string denoting the thumbnail field in the database.
+	FieldThumbnail = "thumbnail"
+	// FieldEventType holds the string denoting the event_type field in the database.
+	FieldEventType = "event_type"
+	// FieldIsUsed holds the string denoting the is_used field in the database.
+	FieldIsUsed = "is_used"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
 	// EdgeEvent holds the string denoting the event edge name in mutations.
@@ -51,7 +59,11 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldPassID,
-	FieldIsRedeemed,
+	FieldName,
+	FieldDescription,
+	FieldThumbnail,
+	FieldEventType,
+	FieldIsUsed,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "event_passes"
@@ -77,8 +89,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// DefaultIsRedeemed holds the default value on creation for the "is_redeemed" field.
-	DefaultIsRedeemed bool
+	// DefaultIsUsed holds the default value on creation for the "is_used" field.
+	DefaultIsUsed bool
 )
 
 // OrderOption defines the ordering options for the EventPass queries.
@@ -94,9 +106,29 @@ func ByPassID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPassID, opts...).ToFunc()
 }
 
-// ByIsRedeemed orders the results by the is_redeemed field.
-func ByIsRedeemed(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIsRedeemed, opts...).ToFunc()
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByDescription orders the results by the description field.
+func ByDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByThumbnail orders the results by the thumbnail field.
+func ByThumbnail(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldThumbnail, opts...).ToFunc()
+}
+
+// ByEventType orders the results by the event_type field.
+func ByEventType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEventType, opts...).ToFunc()
+}
+
+// ByIsUsed orders the results by the is_used field.
+func ByIsUsed(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsUsed, opts...).ToFunc()
 }
 
 // ByOwnerField orders the results by owner field.

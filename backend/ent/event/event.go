@@ -24,18 +24,22 @@ const (
 	FieldEventType = "event_type"
 	// FieldLocation holds the string denoting the location field in the database.
 	FieldLocation = "location"
+	// FieldLat holds the string denoting the lat field in the database.
+	FieldLat = "lat"
+	// FieldLong holds the string denoting the long field in the database.
+	FieldLong = "long"
 	// FieldStartDate holds the string denoting the start_date field in the database.
 	FieldStartDate = "start_date"
 	// FieldEndDate holds the string denoting the end_date field in the database.
 	FieldEndDate = "end_date"
 	// FieldQuota holds the string denoting the quota field in the database.
 	FieldQuota = "quota"
-	// FieldAttendees holds the string denoting the attendees field in the database.
-	FieldAttendees = "attendees"
 	// EdgeHost holds the string denoting the host edge name in mutations.
 	EdgeHost = "host"
 	// EdgePassesIssued holds the string denoting the passes_issued edge name in mutations.
 	EdgePassesIssued = "passes_issued"
+	// EdgeAttendances holds the string denoting the attendances edge name in mutations.
+	EdgeAttendances = "attendances"
 	// Table holds the table name of the event in the database.
 	Table = "events"
 	// HostTable is the table that holds the host relation/edge.
@@ -52,6 +56,13 @@ const (
 	PassesIssuedInverseTable = "event_passes"
 	// PassesIssuedColumn is the table column denoting the passes_issued relation/edge.
 	PassesIssuedColumn = "event_passes_issued"
+	// AttendancesTable is the table that holds the attendances relation/edge.
+	AttendancesTable = "attendances"
+	// AttendancesInverseTable is the table name for the Attendance entity.
+	// It exists in this package in order to avoid circular dependency with the "attendance" package.
+	AttendancesInverseTable = "attendances"
+	// AttendancesColumn is the table column denoting the attendances relation/edge.
+	AttendancesColumn = "event_attendances"
 )
 
 // Columns holds all SQL columns for event fields.
@@ -63,10 +74,11 @@ var Columns = []string{
 	FieldThumbnail,
 	FieldEventType,
 	FieldLocation,
+	FieldLat,
+	FieldLong,
 	FieldStartDate,
 	FieldEndDate,
 	FieldQuota,
-	FieldAttendees,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "events"
@@ -128,6 +140,16 @@ func ByLocation(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLocation, opts...).ToFunc()
 }
 
+// ByLat orders the results by the lat field.
+func ByLat(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLat, opts...).ToFunc()
+}
+
+// ByLong orders the results by the long field.
+func ByLong(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLong, opts...).ToFunc()
+}
+
 // ByStartDate orders the results by the start_date field.
 func ByStartDate(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStartDate, opts...).ToFunc()
@@ -163,6 +185,20 @@ func ByPassesIssued(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newPassesIssuedStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByAttendancesCount orders the results by attendances count.
+func ByAttendancesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAttendancesStep(), opts...)
+	}
+}
+
+// ByAttendances orders the results by attendances terms.
+func ByAttendances(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAttendancesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newHostStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -175,5 +211,12 @@ func newPassesIssuedStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PassesIssuedInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, PassesIssuedTable, PassesIssuedColumn),
+	)
+}
+func newAttendancesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AttendancesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AttendancesTable, AttendancesColumn),
 	)
 }

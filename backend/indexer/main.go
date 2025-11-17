@@ -28,6 +28,11 @@ var (
 	NFTAccessoryMinted             = "A.f8d6e0586b0a20c7.AccessoryPack.AccessoryDistributed"
 	NFTMomentEquipAccessory        = "A.f8d6e0586b0a20c7.NFTMoment.AccessoryEquipped"
 	NFTMomentUnequipAccessory      = "A.f8d6e0586b0a20c7.NFTMoment.AccessoryUnequipped"
+	EventCreated                   = "A.f8d6e0586b0a20c7.EventManager.EventCreated"
+	ProfileUpdated                 = "A.f8d6e0586b0a20c7.UserProfile.ProfileUpdated"
+	UserRegisteredEvent            = "A.f8d6e0586b0a20c7.EventManager.UserRegistered"
+	UserCheckedInEvent             = "A.f8d6e0586b0a20c7.EventManager.UserCheckedIn"
+	EventPassMinted                = "A.f8d6e0586b0a20c7.EventPass.Minted"
 )
 
 func main() {
@@ -65,7 +70,8 @@ func main() {
 		flow.EventFilter{
 			EventTypes: []string{
 				NFTMomentMinted, NFTAccessoryMinted, NFTMomentEquipAccessory, NFTMomentUnequipAccessory,
-				FlowCapabilityControllerIssued,
+				FlowCapabilityControllerIssued, EventCreated, UserRegisteredEvent, UserCheckedInEvent,
+				EventPassMinted, ProfileUpdated,
 			},
 		},
 	)
@@ -97,6 +103,16 @@ func main() {
 					utils.NFTMomentEquipAccessory(ctx, ev, client)
 				case NFTMomentUnequipAccessory:
 					utils.NFTMomentUnequipAccessory(ctx, ev, client)
+				case EventCreated:
+					utils.EventCreated(ctx, ev, client)
+				case UserRegisteredEvent:
+					utils.UserRegistered(ctx, ev, client)
+				case UserCheckedInEvent:
+					utils.UserCheckedIn(ctx, ev, client)
+				case EventPassMinted:
+					utils.EventPassMinted(ctx, ev, client)
+				case ProfileUpdated:
+					utils.ProfileUpdated(ctx, ev, client)
 				}
 			}
 		case err := <-errCh:

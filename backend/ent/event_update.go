@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"backend/ent/attendance"
 	"backend/ent/event"
 	"backend/ent/eventpass"
 	"backend/ent/predicate"
@@ -14,7 +15,6 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -129,6 +129,48 @@ func (_u *EventUpdate) SetNillableLocation(v *string) *EventUpdate {
 	return _u
 }
 
+// SetLat sets the "lat" field.
+func (_u *EventUpdate) SetLat(v float64) *EventUpdate {
+	_u.mutation.ResetLat()
+	_u.mutation.SetLat(v)
+	return _u
+}
+
+// SetNillableLat sets the "lat" field if the given value is not nil.
+func (_u *EventUpdate) SetNillableLat(v *float64) *EventUpdate {
+	if v != nil {
+		_u.SetLat(*v)
+	}
+	return _u
+}
+
+// AddLat adds value to the "lat" field.
+func (_u *EventUpdate) AddLat(v float64) *EventUpdate {
+	_u.mutation.AddLat(v)
+	return _u
+}
+
+// SetLong sets the "long" field.
+func (_u *EventUpdate) SetLong(v float64) *EventUpdate {
+	_u.mutation.ResetLong()
+	_u.mutation.SetLong(v)
+	return _u
+}
+
+// SetNillableLong sets the "long" field if the given value is not nil.
+func (_u *EventUpdate) SetNillableLong(v *float64) *EventUpdate {
+	if v != nil {
+		_u.SetLong(*v)
+	}
+	return _u
+}
+
+// AddLong adds value to the "long" field.
+func (_u *EventUpdate) AddLong(v float64) *EventUpdate {
+	_u.mutation.AddLong(v)
+	return _u
+}
+
 // SetStartDate sets the "start_date" field.
 func (_u *EventUpdate) SetStartDate(v time.Time) *EventUpdate {
 	_u.mutation.SetStartDate(v)
@@ -178,24 +220,6 @@ func (_u *EventUpdate) AddQuota(v int64) *EventUpdate {
 	return _u
 }
 
-// SetAttendees sets the "attendees" field.
-func (_u *EventUpdate) SetAttendees(v []string) *EventUpdate {
-	_u.mutation.SetAttendees(v)
-	return _u
-}
-
-// AppendAttendees appends value to the "attendees" field.
-func (_u *EventUpdate) AppendAttendees(v []string) *EventUpdate {
-	_u.mutation.AppendAttendees(v)
-	return _u
-}
-
-// ClearAttendees clears the value of the "attendees" field.
-func (_u *EventUpdate) ClearAttendees() *EventUpdate {
-	_u.mutation.ClearAttendees()
-	return _u
-}
-
 // SetHostID sets the "host" edge to the User entity by ID.
 func (_u *EventUpdate) SetHostID(id int) *EventUpdate {
 	_u.mutation.SetHostID(id)
@@ -220,6 +244,21 @@ func (_u *EventUpdate) AddPassesIssued(v ...*EventPass) *EventUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddPassesIssuedIDs(ids...)
+}
+
+// AddAttendanceIDs adds the "attendances" edge to the Attendance entity by IDs.
+func (_u *EventUpdate) AddAttendanceIDs(ids ...int) *EventUpdate {
+	_u.mutation.AddAttendanceIDs(ids...)
+	return _u
+}
+
+// AddAttendances adds the "attendances" edges to the Attendance entity.
+func (_u *EventUpdate) AddAttendances(v ...*Attendance) *EventUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAttendanceIDs(ids...)
 }
 
 // Mutation returns the EventMutation object of the builder.
@@ -252,6 +291,27 @@ func (_u *EventUpdate) RemovePassesIssued(v ...*EventPass) *EventUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePassesIssuedIDs(ids...)
+}
+
+// ClearAttendances clears all "attendances" edges to the Attendance entity.
+func (_u *EventUpdate) ClearAttendances() *EventUpdate {
+	_u.mutation.ClearAttendances()
+	return _u
+}
+
+// RemoveAttendanceIDs removes the "attendances" edge to Attendance entities by IDs.
+func (_u *EventUpdate) RemoveAttendanceIDs(ids ...int) *EventUpdate {
+	_u.mutation.RemoveAttendanceIDs(ids...)
+	return _u
+}
+
+// RemoveAttendances removes "attendances" edges to Attendance entities.
+func (_u *EventUpdate) RemoveAttendances(v ...*Attendance) *EventUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAttendanceIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -325,6 +385,18 @@ func (_u *EventUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Location(); ok {
 		_spec.SetField(event.FieldLocation, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Lat(); ok {
+		_spec.SetField(event.FieldLat, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedLat(); ok {
+		_spec.AddField(event.FieldLat, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.Long(); ok {
+		_spec.SetField(event.FieldLong, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedLong(); ok {
+		_spec.AddField(event.FieldLong, field.TypeFloat64, value)
+	}
 	if value, ok := _u.mutation.StartDate(); ok {
 		_spec.SetField(event.FieldStartDate, field.TypeTime, value)
 	}
@@ -336,17 +408,6 @@ func (_u *EventUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedQuota(); ok {
 		_spec.AddField(event.FieldQuota, field.TypeUint64, value)
-	}
-	if value, ok := _u.mutation.Attendees(); ok {
-		_spec.SetField(event.FieldAttendees, field.TypeJSON, value)
-	}
-	if value, ok := _u.mutation.AppendedAttendees(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, event.FieldAttendees, value)
-		})
-	}
-	if _u.mutation.AttendeesCleared() {
-		_spec.ClearField(event.FieldAttendees, field.TypeJSON)
 	}
 	if _u.mutation.HostCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -415,6 +476,51 @@ func (_u *EventUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(eventpass.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AttendancesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.AttendancesTable,
+			Columns: []string{event.AttendancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attendance.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAttendancesIDs(); len(nodes) > 0 && !_u.mutation.AttendancesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.AttendancesTable,
+			Columns: []string{event.AttendancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attendance.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AttendancesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.AttendancesTable,
+			Columns: []string{event.AttendancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attendance.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -540,6 +646,48 @@ func (_u *EventUpdateOne) SetNillableLocation(v *string) *EventUpdateOne {
 	return _u
 }
 
+// SetLat sets the "lat" field.
+func (_u *EventUpdateOne) SetLat(v float64) *EventUpdateOne {
+	_u.mutation.ResetLat()
+	_u.mutation.SetLat(v)
+	return _u
+}
+
+// SetNillableLat sets the "lat" field if the given value is not nil.
+func (_u *EventUpdateOne) SetNillableLat(v *float64) *EventUpdateOne {
+	if v != nil {
+		_u.SetLat(*v)
+	}
+	return _u
+}
+
+// AddLat adds value to the "lat" field.
+func (_u *EventUpdateOne) AddLat(v float64) *EventUpdateOne {
+	_u.mutation.AddLat(v)
+	return _u
+}
+
+// SetLong sets the "long" field.
+func (_u *EventUpdateOne) SetLong(v float64) *EventUpdateOne {
+	_u.mutation.ResetLong()
+	_u.mutation.SetLong(v)
+	return _u
+}
+
+// SetNillableLong sets the "long" field if the given value is not nil.
+func (_u *EventUpdateOne) SetNillableLong(v *float64) *EventUpdateOne {
+	if v != nil {
+		_u.SetLong(*v)
+	}
+	return _u
+}
+
+// AddLong adds value to the "long" field.
+func (_u *EventUpdateOne) AddLong(v float64) *EventUpdateOne {
+	_u.mutation.AddLong(v)
+	return _u
+}
+
 // SetStartDate sets the "start_date" field.
 func (_u *EventUpdateOne) SetStartDate(v time.Time) *EventUpdateOne {
 	_u.mutation.SetStartDate(v)
@@ -589,24 +737,6 @@ func (_u *EventUpdateOne) AddQuota(v int64) *EventUpdateOne {
 	return _u
 }
 
-// SetAttendees sets the "attendees" field.
-func (_u *EventUpdateOne) SetAttendees(v []string) *EventUpdateOne {
-	_u.mutation.SetAttendees(v)
-	return _u
-}
-
-// AppendAttendees appends value to the "attendees" field.
-func (_u *EventUpdateOne) AppendAttendees(v []string) *EventUpdateOne {
-	_u.mutation.AppendAttendees(v)
-	return _u
-}
-
-// ClearAttendees clears the value of the "attendees" field.
-func (_u *EventUpdateOne) ClearAttendees() *EventUpdateOne {
-	_u.mutation.ClearAttendees()
-	return _u
-}
-
 // SetHostID sets the "host" edge to the User entity by ID.
 func (_u *EventUpdateOne) SetHostID(id int) *EventUpdateOne {
 	_u.mutation.SetHostID(id)
@@ -631,6 +761,21 @@ func (_u *EventUpdateOne) AddPassesIssued(v ...*EventPass) *EventUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.AddPassesIssuedIDs(ids...)
+}
+
+// AddAttendanceIDs adds the "attendances" edge to the Attendance entity by IDs.
+func (_u *EventUpdateOne) AddAttendanceIDs(ids ...int) *EventUpdateOne {
+	_u.mutation.AddAttendanceIDs(ids...)
+	return _u
+}
+
+// AddAttendances adds the "attendances" edges to the Attendance entity.
+func (_u *EventUpdateOne) AddAttendances(v ...*Attendance) *EventUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAttendanceIDs(ids...)
 }
 
 // Mutation returns the EventMutation object of the builder.
@@ -663,6 +808,27 @@ func (_u *EventUpdateOne) RemovePassesIssued(v ...*EventPass) *EventUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePassesIssuedIDs(ids...)
+}
+
+// ClearAttendances clears all "attendances" edges to the Attendance entity.
+func (_u *EventUpdateOne) ClearAttendances() *EventUpdateOne {
+	_u.mutation.ClearAttendances()
+	return _u
+}
+
+// RemoveAttendanceIDs removes the "attendances" edge to Attendance entities by IDs.
+func (_u *EventUpdateOne) RemoveAttendanceIDs(ids ...int) *EventUpdateOne {
+	_u.mutation.RemoveAttendanceIDs(ids...)
+	return _u
+}
+
+// RemoveAttendances removes "attendances" edges to Attendance entities.
+func (_u *EventUpdateOne) RemoveAttendances(v ...*Attendance) *EventUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAttendanceIDs(ids...)
 }
 
 // Where appends a list predicates to the EventUpdate builder.
@@ -766,6 +932,18 @@ func (_u *EventUpdateOne) sqlSave(ctx context.Context) (_node *Event, err error)
 	if value, ok := _u.mutation.Location(); ok {
 		_spec.SetField(event.FieldLocation, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Lat(); ok {
+		_spec.SetField(event.FieldLat, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedLat(); ok {
+		_spec.AddField(event.FieldLat, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.Long(); ok {
+		_spec.SetField(event.FieldLong, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedLong(); ok {
+		_spec.AddField(event.FieldLong, field.TypeFloat64, value)
+	}
 	if value, ok := _u.mutation.StartDate(); ok {
 		_spec.SetField(event.FieldStartDate, field.TypeTime, value)
 	}
@@ -777,17 +955,6 @@ func (_u *EventUpdateOne) sqlSave(ctx context.Context) (_node *Event, err error)
 	}
 	if value, ok := _u.mutation.AddedQuota(); ok {
 		_spec.AddField(event.FieldQuota, field.TypeUint64, value)
-	}
-	if value, ok := _u.mutation.Attendees(); ok {
-		_spec.SetField(event.FieldAttendees, field.TypeJSON, value)
-	}
-	if value, ok := _u.mutation.AppendedAttendees(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, event.FieldAttendees, value)
-		})
-	}
-	if _u.mutation.AttendeesCleared() {
-		_spec.ClearField(event.FieldAttendees, field.TypeJSON)
 	}
 	if _u.mutation.HostCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -856,6 +1023,51 @@ func (_u *EventUpdateOne) sqlSave(ctx context.Context) (_node *Event, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(eventpass.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AttendancesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.AttendancesTable,
+			Columns: []string{event.AttendancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attendance.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAttendancesIDs(); len(nodes) > 0 && !_u.mutation.AttendancesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.AttendancesTable,
+			Columns: []string{event.AttendancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attendance.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AttendancesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.AttendancesTable,
+			Columns: []string{event.AttendancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attendance.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

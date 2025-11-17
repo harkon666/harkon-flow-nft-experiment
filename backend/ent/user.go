@@ -33,6 +33,8 @@ type User struct {
 	HighlightedEventPassIds []uint64 `json:"highlighted_eventPass_ids,omitempty"`
 	// HighlightedMomentID holds the value of the "highlighted_moment_id" field.
 	HighlightedMomentID uint64 `json:"highlighted_moment_id,omitempty"`
+	// Socials holds the value of the "socials" field.
+	Socials map[string]string `json:"socials,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -49,9 +51,11 @@ type UserEdges struct {
 	Moments []*NFTMoment `json:"moments,omitempty"`
 	// Accessories holds the value of the accessories edge.
 	Accessories []*NFTAccessory `json:"accessories,omitempty"`
+	// Attendances holds the value of the attendances edge.
+	Attendances []*Attendance `json:"attendances,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // EventPassesOrErr returns the EventPasses value or an error if the edge
@@ -90,12 +94,21 @@ func (e UserEdges) AccessoriesOrErr() ([]*NFTAccessory, error) {
 	return nil, &NotLoadedError{edge: "accessories"}
 }
 
+// AttendancesOrErr returns the Attendances value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) AttendancesOrErr() ([]*Attendance, error) {
+	if e.loadedTypes[4] {
+		return e.Attendances, nil
+	}
+	return nil, &NotLoadedError{edge: "attendances"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldHighlightedEventPassIds:
+		case user.FieldHighlightedEventPassIds, user.FieldSocials:
 			values[i] = new([]byte)
 		case user.FieldID, user.FieldHighlightedMomentID:
 			values[i] = new(sql.NullInt64)
@@ -172,6 +185,14 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.HighlightedMomentID = uint64(value.Int64)
 			}
+		case user.FieldSocials:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field socials", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Socials); err != nil {
+					return fmt.Errorf("unmarshal field socials: %w", err)
+				}
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -203,6 +224,11 @@ func (_m *User) QueryMoments() *NFTMomentQuery {
 // QueryAccessories queries the "accessories" edge of the User entity.
 func (_m *User) QueryAccessories() *NFTAccessoryQuery {
 	return NewUserClient(_m.config).QueryAccessories(_m)
+}
+
+// QueryAttendances queries the "attendances" edge of the User entity.
+func (_m *User) QueryAttendances() *AttendanceQuery {
+	return NewUserClient(_m.config).QueryAttendances(_m)
 }
 
 // Update returns a builder for updating this User.
@@ -251,6 +277,9 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("highlighted_moment_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.HighlightedMomentID))
+	builder.WriteString(", ")
+	builder.WriteString("socials=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Socials))
 	builder.WriteByte(')')
 	return builder.String()
 }

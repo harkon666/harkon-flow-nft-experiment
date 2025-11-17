@@ -11,6 +11,7 @@ import (
 
 	"backend/ent/migrate"
 
+	"backend/ent/attendance"
 	"backend/ent/event"
 	"backend/ent/eventpass"
 	"backend/ent/nftaccessory"
@@ -28,6 +29,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Attendance is the client for interacting with the Attendance builders.
+	Attendance *AttendanceClient
 	// Event is the client for interacting with the Event builders.
 	Event *EventClient
 	// EventPass is the client for interacting with the EventPass builders.
@@ -49,6 +52,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Attendance = NewAttendanceClient(c.config)
 	c.Event = NewEventClient(c.config)
 	c.EventPass = NewEventPassClient(c.config)
 	c.NFTAccessory = NewNFTAccessoryClient(c.config)
@@ -146,6 +150,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:          ctx,
 		config:       cfg,
+		Attendance:   NewAttendanceClient(cfg),
 		Event:        NewEventClient(cfg),
 		EventPass:    NewEventPassClient(cfg),
 		NFTAccessory: NewNFTAccessoryClient(cfg),
@@ -170,6 +175,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:          ctx,
 		config:       cfg,
+		Attendance:   NewAttendanceClient(cfg),
 		Event:        NewEventClient(cfg),
 		EventPass:    NewEventPassClient(cfg),
 		NFTAccessory: NewNFTAccessoryClient(cfg),
@@ -181,7 +187,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Event.
+//		Attendance.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -203,26 +209,28 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Event.Use(hooks...)
-	c.EventPass.Use(hooks...)
-	c.NFTAccessory.Use(hooks...)
-	c.NFTMoment.Use(hooks...)
-	c.User.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.Attendance, c.Event, c.EventPass, c.NFTAccessory, c.NFTMoment, c.User,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Event.Intercept(interceptors...)
-	c.EventPass.Intercept(interceptors...)
-	c.NFTAccessory.Intercept(interceptors...)
-	c.NFTMoment.Intercept(interceptors...)
-	c.User.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.Attendance, c.Event, c.EventPass, c.NFTAccessory, c.NFTMoment, c.User,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *AttendanceMutation:
+		return c.Attendance.mutate(ctx, m)
 	case *EventMutation:
 		return c.Event.mutate(ctx, m)
 	case *EventPassMutation:
@@ -235,6 +243,171 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// AttendanceClient is a client for the Attendance schema.
+type AttendanceClient struct {
+	config
+}
+
+// NewAttendanceClient returns a client for the Attendance from the given config.
+func NewAttendanceClient(c config) *AttendanceClient {
+	return &AttendanceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `attendance.Hooks(f(g(h())))`.
+func (c *AttendanceClient) Use(hooks ...Hook) {
+	c.hooks.Attendance = append(c.hooks.Attendance, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `attendance.Intercept(f(g(h())))`.
+func (c *AttendanceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Attendance = append(c.inters.Attendance, interceptors...)
+}
+
+// Create returns a builder for creating a Attendance entity.
+func (c *AttendanceClient) Create() *AttendanceCreate {
+	mutation := newAttendanceMutation(c.config, OpCreate)
+	return &AttendanceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Attendance entities.
+func (c *AttendanceClient) CreateBulk(builders ...*AttendanceCreate) *AttendanceCreateBulk {
+	return &AttendanceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AttendanceClient) MapCreateBulk(slice any, setFunc func(*AttendanceCreate, int)) *AttendanceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AttendanceCreateBulk{err: fmt.Errorf("calling to AttendanceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AttendanceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AttendanceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Attendance.
+func (c *AttendanceClient) Update() *AttendanceUpdate {
+	mutation := newAttendanceMutation(c.config, OpUpdate)
+	return &AttendanceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AttendanceClient) UpdateOne(_m *Attendance) *AttendanceUpdateOne {
+	mutation := newAttendanceMutation(c.config, OpUpdateOne, withAttendance(_m))
+	return &AttendanceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AttendanceClient) UpdateOneID(id int) *AttendanceUpdateOne {
+	mutation := newAttendanceMutation(c.config, OpUpdateOne, withAttendanceID(id))
+	return &AttendanceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Attendance.
+func (c *AttendanceClient) Delete() *AttendanceDelete {
+	mutation := newAttendanceMutation(c.config, OpDelete)
+	return &AttendanceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AttendanceClient) DeleteOne(_m *Attendance) *AttendanceDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AttendanceClient) DeleteOneID(id int) *AttendanceDeleteOne {
+	builder := c.Delete().Where(attendance.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AttendanceDeleteOne{builder}
+}
+
+// Query returns a query builder for Attendance.
+func (c *AttendanceClient) Query() *AttendanceQuery {
+	return &AttendanceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAttendance},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Attendance entity by its id.
+func (c *AttendanceClient) Get(ctx context.Context, id int) (*Attendance, error) {
+	return c.Query().Where(attendance.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AttendanceClient) GetX(ctx context.Context, id int) *Attendance {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a Attendance.
+func (c *AttendanceClient) QueryUser(_m *Attendance) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(attendance.Table, attendance.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, attendance.UserTable, attendance.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEvent queries the event edge of a Attendance.
+func (c *AttendanceClient) QueryEvent(_m *Attendance) *EventQuery {
+	query := (&EventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(attendance.Table, attendance.FieldID, id),
+			sqlgraph.To(event.Table, event.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, attendance.EventTable, attendance.EventColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AttendanceClient) Hooks() []Hook {
+	return c.hooks.Attendance
+}
+
+// Interceptors returns the client interceptors.
+func (c *AttendanceClient) Interceptors() []Interceptor {
+	return c.inters.Attendance
+}
+
+func (c *AttendanceClient) mutate(ctx context.Context, m *AttendanceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AttendanceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AttendanceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AttendanceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AttendanceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Attendance mutation op: %q", m.Op())
 	}
 }
 
@@ -371,6 +544,22 @@ func (c *EventClient) QueryPassesIssued(_m *Event) *EventPassQuery {
 			sqlgraph.From(event.Table, event.FieldID, id),
 			sqlgraph.To(eventpass.Table, eventpass.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, event.PassesIssuedTable, event.PassesIssuedColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAttendances queries the attendances edge of a Event.
+func (c *EventClient) QueryAttendances(_m *Event) *AttendanceQuery {
+	query := (&AttendanceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(event.Table, event.FieldID, id),
+			sqlgraph.To(attendance.Table, attendance.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, event.AttendancesTable, event.AttendancesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -1102,6 +1291,22 @@ func (c *UserClient) QueryAccessories(_m *User) *NFTAccessoryQuery {
 	return query
 }
 
+// QueryAttendances queries the attendances edge of a User.
+func (c *UserClient) QueryAttendances(_m *User) *AttendanceQuery {
+	query := (&AttendanceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(attendance.Table, attendance.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.AttendancesTable, user.AttendancesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -1130,9 +1335,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Event, EventPass, NFTAccessory, NFTMoment, User []ent.Hook
+		Attendance, Event, EventPass, NFTAccessory, NFTMoment, User []ent.Hook
 	}
 	inters struct {
-		Event, EventPass, NFTAccessory, NFTMoment, User []ent.Interceptor
+		Attendance, Event, EventPass, NFTAccessory, NFTMoment, User []ent.Interceptor
 	}
 )

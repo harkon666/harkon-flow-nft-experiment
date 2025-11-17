@@ -3,18 +3,30 @@
 package ent
 
 import (
+	"backend/ent/attendance"
 	"backend/ent/eventpass"
 	"backend/ent/schema"
+	"time"
 )
 
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	attendanceFields := schema.Attendance{}.Fields()
+	_ = attendanceFields
+	// attendanceDescCheckedIn is the schema descriptor for checked_in field.
+	attendanceDescCheckedIn := attendanceFields[0].Descriptor()
+	// attendance.DefaultCheckedIn holds the default value on creation for the checked_in field.
+	attendance.DefaultCheckedIn = attendanceDescCheckedIn.Default.(bool)
+	// attendanceDescRegistrationTime is the schema descriptor for registration_time field.
+	attendanceDescRegistrationTime := attendanceFields[1].Descriptor()
+	// attendance.DefaultRegistrationTime holds the default value on creation for the registration_time field.
+	attendance.DefaultRegistrationTime = attendanceDescRegistrationTime.Default.(func() time.Time)
 	eventpassFields := schema.EventPass{}.Fields()
 	_ = eventpassFields
-	// eventpassDescIsRedeemed is the schema descriptor for is_redeemed field.
-	eventpassDescIsRedeemed := eventpassFields[1].Descriptor()
-	// eventpass.DefaultIsRedeemed holds the default value on creation for the is_redeemed field.
-	eventpass.DefaultIsRedeemed = eventpassDescIsRedeemed.Default.(bool)
+	// eventpassDescIsUsed is the schema descriptor for is_used field.
+	eventpassDescIsUsed := eventpassFields[5].Descriptor()
+	// eventpass.DefaultIsUsed holds the default value on creation for the is_used field.
+	eventpass.DefaultIsUsed = eventpassDescIsUsed.Default.(bool)
 }

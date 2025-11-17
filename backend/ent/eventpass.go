@@ -21,8 +21,16 @@ type EventPass struct {
 	ID int `json:"id,omitempty"`
 	// PassID holds the value of the "pass_id" field.
 	PassID uint64 `json:"pass_id,omitempty"`
-	// IsRedeemed holds the value of the "is_redeemed" field.
-	IsRedeemed bool `json:"is_redeemed,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `json:"description,omitempty"`
+	// Thumbnail holds the value of the "thumbnail" field.
+	Thumbnail string `json:"thumbnail,omitempty"`
+	// EventType holds the value of the "event_type" field.
+	EventType uint8 `json:"event_type,omitempty"`
+	// IsUsed holds the value of the "is_used" field.
+	IsUsed bool `json:"is_used,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EventPassQuery when eager-loading is set.
 	Edges               EventPassEdges `json:"edges"`
@@ -82,10 +90,12 @@ func (*EventPass) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case eventpass.FieldIsRedeemed:
+		case eventpass.FieldIsUsed:
 			values[i] = new(sql.NullBool)
-		case eventpass.FieldID, eventpass.FieldPassID:
+		case eventpass.FieldID, eventpass.FieldPassID, eventpass.FieldEventType:
 			values[i] = new(sql.NullInt64)
+		case eventpass.FieldName, eventpass.FieldDescription, eventpass.FieldThumbnail:
+			values[i] = new(sql.NullString)
 		case eventpass.ForeignKeys[0]: // event_passes_issued
 			values[i] = new(sql.NullInt64)
 		case eventpass.ForeignKeys[1]: // user_event_passes
@@ -117,11 +127,35 @@ func (_m *EventPass) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.PassID = uint64(value.Int64)
 			}
-		case eventpass.FieldIsRedeemed:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_redeemed", values[i])
+		case eventpass.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				_m.IsRedeemed = value.Bool
+				_m.Name = value.String
+			}
+		case eventpass.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				_m.Description = value.String
+			}
+		case eventpass.FieldThumbnail:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field thumbnail", values[i])
+			} else if value.Valid {
+				_m.Thumbnail = value.String
+			}
+		case eventpass.FieldEventType:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field event_type", values[i])
+			} else if value.Valid {
+				_m.EventType = uint8(value.Int64)
+			}
+		case eventpass.FieldIsUsed:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_used", values[i])
+			} else if value.Valid {
+				_m.IsUsed = value.Bool
 			}
 		case eventpass.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -191,8 +225,20 @@ func (_m *EventPass) String() string {
 	builder.WriteString("pass_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.PassID))
 	builder.WriteString(", ")
-	builder.WriteString("is_redeemed=")
-	builder.WriteString(fmt.Sprintf("%v", _m.IsRedeemed))
+	builder.WriteString("name=")
+	builder.WriteString(_m.Name)
+	builder.WriteString(", ")
+	builder.WriteString("description=")
+	builder.WriteString(_m.Description)
+	builder.WriteString(", ")
+	builder.WriteString("thumbnail=")
+	builder.WriteString(_m.Thumbnail)
+	builder.WriteString(", ")
+	builder.WriteString("event_type=")
+	builder.WriteString(fmt.Sprintf("%v", _m.EventType))
+	builder.WriteString(", ")
+	builder.WriteString("is_used=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsUsed))
 	builder.WriteByte(')')
 	return builder.String()
 }

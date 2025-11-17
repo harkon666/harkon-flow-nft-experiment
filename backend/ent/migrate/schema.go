@@ -8,6 +8,34 @@ import (
 )
 
 var (
+	// AttendancesColumns holds the columns for the "attendances" table.
+	AttendancesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "checked_in", Type: field.TypeBool, Default: false},
+		{Name: "registration_time", Type: field.TypeTime},
+		{Name: "event_attendances", Type: field.TypeInt},
+		{Name: "user_attendances", Type: field.TypeInt},
+	}
+	// AttendancesTable holds the schema information for the "attendances" table.
+	AttendancesTable = &schema.Table{
+		Name:       "attendances",
+		Columns:    AttendancesColumns,
+		PrimaryKey: []*schema.Column{AttendancesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "attendances_events_attendances",
+				Columns:    []*schema.Column{AttendancesColumns[3]},
+				RefColumns: []*schema.Column{EventsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "attendances_users_attendances",
+				Columns:    []*schema.Column{AttendancesColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// EventsColumns holds the columns for the "events" table.
 	EventsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -17,10 +45,11 @@ var (
 		{Name: "thumbnail", Type: field.TypeString},
 		{Name: "event_type", Type: field.TypeUint8},
 		{Name: "location", Type: field.TypeString},
+		{Name: "lat", Type: field.TypeFloat64},
+		{Name: "long", Type: field.TypeFloat64},
 		{Name: "start_date", Type: field.TypeTime},
 		{Name: "end_date", Type: field.TypeTime},
 		{Name: "quota", Type: field.TypeUint64},
-		{Name: "attendees", Type: field.TypeJSON, Nullable: true},
 		{Name: "user_hosted_events", Type: field.TypeInt},
 	}
 	// EventsTable holds the schema information for the "events" table.
@@ -31,7 +60,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "events_users_hosted_events",
-				Columns:    []*schema.Column{EventsColumns[11]},
+				Columns:    []*schema.Column{EventsColumns[12]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -41,7 +70,11 @@ var (
 	EventPassesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "pass_id", Type: field.TypeUint64, Unique: true},
-		{Name: "is_redeemed", Type: field.TypeBool, Default: false},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString},
+		{Name: "thumbnail", Type: field.TypeString},
+		{Name: "event_type", Type: field.TypeUint8},
+		{Name: "is_used", Type: field.TypeBool, Default: false},
 		{Name: "event_passes_issued", Type: field.TypeInt},
 		{Name: "user_event_passes", Type: field.TypeInt},
 	}
@@ -53,13 +86,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "event_passes_events_passes_issued",
-				Columns:    []*schema.Column{EventPassesColumns[3]},
+				Columns:    []*schema.Column{EventPassesColumns[7]},
 				RefColumns: []*schema.Column{EventsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "event_passes_users_event_passes",
-				Columns:    []*schema.Column{EventPassesColumns[4]},
+				Columns:    []*schema.Column{EventPassesColumns[8]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -137,6 +170,7 @@ var (
 		{Name: "bg_image", Type: field.TypeString, Nullable: true},
 		{Name: "highlighted_event_pass_ids", Type: field.TypeJSON, Nullable: true},
 		{Name: "highlighted_moment_id", Type: field.TypeUint64, Nullable: true},
+		{Name: "socials", Type: field.TypeJSON, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -146,6 +180,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AttendancesTable,
 		EventsTable,
 		EventPassesTable,
 		NftAccessoriesTable,
@@ -155,6 +190,8 @@ var (
 )
 
 func init() {
+	AttendancesTable.ForeignKeys[0].RefTable = EventsTable
+	AttendancesTable.ForeignKeys[1].RefTable = UsersTable
 	EventsTable.ForeignKeys[0].RefTable = UsersTable
 	EventPassesTable.ForeignKeys[0].RefTable = EventsTable
 	EventPassesTable.ForeignKeys[1].RefTable = UsersTable

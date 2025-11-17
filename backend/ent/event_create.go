@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"backend/ent/attendance"
 	"backend/ent/event"
 	"backend/ent/eventpass"
 	"backend/ent/user"
@@ -58,6 +59,18 @@ func (_c *EventCreate) SetLocation(v string) *EventCreate {
 	return _c
 }
 
+// SetLat sets the "lat" field.
+func (_c *EventCreate) SetLat(v float64) *EventCreate {
+	_c.mutation.SetLat(v)
+	return _c
+}
+
+// SetLong sets the "long" field.
+func (_c *EventCreate) SetLong(v float64) *EventCreate {
+	_c.mutation.SetLong(v)
+	return _c
+}
+
 // SetStartDate sets the "start_date" field.
 func (_c *EventCreate) SetStartDate(v time.Time) *EventCreate {
 	_c.mutation.SetStartDate(v)
@@ -73,12 +86,6 @@ func (_c *EventCreate) SetEndDate(v time.Time) *EventCreate {
 // SetQuota sets the "quota" field.
 func (_c *EventCreate) SetQuota(v uint64) *EventCreate {
 	_c.mutation.SetQuota(v)
-	return _c
-}
-
-// SetAttendees sets the "attendees" field.
-func (_c *EventCreate) SetAttendees(v []string) *EventCreate {
-	_c.mutation.SetAttendees(v)
 	return _c
 }
 
@@ -106,6 +113,21 @@ func (_c *EventCreate) AddPassesIssued(v ...*EventPass) *EventCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddPassesIssuedIDs(ids...)
+}
+
+// AddAttendanceIDs adds the "attendances" edge to the Attendance entity by IDs.
+func (_c *EventCreate) AddAttendanceIDs(ids ...int) *EventCreate {
+	_c.mutation.AddAttendanceIDs(ids...)
+	return _c
+}
+
+// AddAttendances adds the "attendances" edges to the Attendance entity.
+func (_c *EventCreate) AddAttendances(v ...*Attendance) *EventCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAttendanceIDs(ids...)
 }
 
 // Mutation returns the EventMutation object of the builder.
@@ -159,6 +181,12 @@ func (_c *EventCreate) check() error {
 	}
 	if _, ok := _c.mutation.Location(); !ok {
 		return &ValidationError{Name: "location", err: errors.New(`ent: missing required field "Event.location"`)}
+	}
+	if _, ok := _c.mutation.Lat(); !ok {
+		return &ValidationError{Name: "lat", err: errors.New(`ent: missing required field "Event.lat"`)}
+	}
+	if _, ok := _c.mutation.Long(); !ok {
+		return &ValidationError{Name: "long", err: errors.New(`ent: missing required field "Event.long"`)}
 	}
 	if _, ok := _c.mutation.StartDate(); !ok {
 		return &ValidationError{Name: "start_date", err: errors.New(`ent: missing required field "Event.start_date"`)}
@@ -222,6 +250,14 @@ func (_c *EventCreate) createSpec() (*Event, *sqlgraph.CreateSpec) {
 		_spec.SetField(event.FieldLocation, field.TypeString, value)
 		_node.Location = value
 	}
+	if value, ok := _c.mutation.Lat(); ok {
+		_spec.SetField(event.FieldLat, field.TypeFloat64, value)
+		_node.Lat = value
+	}
+	if value, ok := _c.mutation.Long(); ok {
+		_spec.SetField(event.FieldLong, field.TypeFloat64, value)
+		_node.Long = value
+	}
 	if value, ok := _c.mutation.StartDate(); ok {
 		_spec.SetField(event.FieldStartDate, field.TypeTime, value)
 		_node.StartDate = value
@@ -233,10 +269,6 @@ func (_c *EventCreate) createSpec() (*Event, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Quota(); ok {
 		_spec.SetField(event.FieldQuota, field.TypeUint64, value)
 		_node.Quota = value
-	}
-	if value, ok := _c.mutation.Attendees(); ok {
-		_spec.SetField(event.FieldAttendees, field.TypeJSON, value)
-		_node.Attendees = value
 	}
 	if nodes := _c.mutation.HostIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -264,6 +296,22 @@ func (_c *EventCreate) createSpec() (*Event, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(eventpass.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AttendancesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   event.AttendancesTable,
+			Columns: []string{event.AttendancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attendance.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -22,12 +22,11 @@ func (Event) Fields() []ent.Field {
 		field.String("thumbnail"),
 		field.Uint8("event_type"),
 		field.String("location"),
+		field.Float("lat"),
+		field.Float("long"),
 		field.Time("start_date"),
 		field.Time("end_date"),
 		field.Uint64("quota"),
-		// Kita simpan daftar alamat yang check-in sebagai JSON
-		field.JSON("attendees", []string{}).
-			Optional(),
 	}
 }
 
@@ -44,5 +43,6 @@ func (Event) Edges() []ent.Edge {
 		// Relasi One-to-Many (Satu-ke-Banyak)
 		// Satu Event akan menghasilkan banyak EventPass
 		edge.To("passes_issued", EventPass.Type),
+		edge.To("attendances", Attendance.Type),
 	}
 }

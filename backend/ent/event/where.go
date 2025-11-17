@@ -85,6 +85,16 @@ func Location(v string) predicate.Event {
 	return predicate.Event(sql.FieldEQ(FieldLocation, v))
 }
 
+// Lat applies equality check predicate on the "lat" field. It's identical to LatEQ.
+func Lat(v float64) predicate.Event {
+	return predicate.Event(sql.FieldEQ(FieldLat, v))
+}
+
+// Long applies equality check predicate on the "long" field. It's identical to LongEQ.
+func Long(v float64) predicate.Event {
+	return predicate.Event(sql.FieldEQ(FieldLong, v))
+}
+
 // StartDate applies equality check predicate on the "start_date" field. It's identical to StartDateEQ.
 func StartDate(v time.Time) predicate.Event {
 	return predicate.Event(sql.FieldEQ(FieldStartDate, v))
@@ -440,6 +450,86 @@ func LocationContainsFold(v string) predicate.Event {
 	return predicate.Event(sql.FieldContainsFold(FieldLocation, v))
 }
 
+// LatEQ applies the EQ predicate on the "lat" field.
+func LatEQ(v float64) predicate.Event {
+	return predicate.Event(sql.FieldEQ(FieldLat, v))
+}
+
+// LatNEQ applies the NEQ predicate on the "lat" field.
+func LatNEQ(v float64) predicate.Event {
+	return predicate.Event(sql.FieldNEQ(FieldLat, v))
+}
+
+// LatIn applies the In predicate on the "lat" field.
+func LatIn(vs ...float64) predicate.Event {
+	return predicate.Event(sql.FieldIn(FieldLat, vs...))
+}
+
+// LatNotIn applies the NotIn predicate on the "lat" field.
+func LatNotIn(vs ...float64) predicate.Event {
+	return predicate.Event(sql.FieldNotIn(FieldLat, vs...))
+}
+
+// LatGT applies the GT predicate on the "lat" field.
+func LatGT(v float64) predicate.Event {
+	return predicate.Event(sql.FieldGT(FieldLat, v))
+}
+
+// LatGTE applies the GTE predicate on the "lat" field.
+func LatGTE(v float64) predicate.Event {
+	return predicate.Event(sql.FieldGTE(FieldLat, v))
+}
+
+// LatLT applies the LT predicate on the "lat" field.
+func LatLT(v float64) predicate.Event {
+	return predicate.Event(sql.FieldLT(FieldLat, v))
+}
+
+// LatLTE applies the LTE predicate on the "lat" field.
+func LatLTE(v float64) predicate.Event {
+	return predicate.Event(sql.FieldLTE(FieldLat, v))
+}
+
+// LongEQ applies the EQ predicate on the "long" field.
+func LongEQ(v float64) predicate.Event {
+	return predicate.Event(sql.FieldEQ(FieldLong, v))
+}
+
+// LongNEQ applies the NEQ predicate on the "long" field.
+func LongNEQ(v float64) predicate.Event {
+	return predicate.Event(sql.FieldNEQ(FieldLong, v))
+}
+
+// LongIn applies the In predicate on the "long" field.
+func LongIn(vs ...float64) predicate.Event {
+	return predicate.Event(sql.FieldIn(FieldLong, vs...))
+}
+
+// LongNotIn applies the NotIn predicate on the "long" field.
+func LongNotIn(vs ...float64) predicate.Event {
+	return predicate.Event(sql.FieldNotIn(FieldLong, vs...))
+}
+
+// LongGT applies the GT predicate on the "long" field.
+func LongGT(v float64) predicate.Event {
+	return predicate.Event(sql.FieldGT(FieldLong, v))
+}
+
+// LongGTE applies the GTE predicate on the "long" field.
+func LongGTE(v float64) predicate.Event {
+	return predicate.Event(sql.FieldGTE(FieldLong, v))
+}
+
+// LongLT applies the LT predicate on the "long" field.
+func LongLT(v float64) predicate.Event {
+	return predicate.Event(sql.FieldLT(FieldLong, v))
+}
+
+// LongLTE applies the LTE predicate on the "long" field.
+func LongLTE(v float64) predicate.Event {
+	return predicate.Event(sql.FieldLTE(FieldLong, v))
+}
+
 // StartDateEQ applies the EQ predicate on the "start_date" field.
 func StartDateEQ(v time.Time) predicate.Event {
 	return predicate.Event(sql.FieldEQ(FieldStartDate, v))
@@ -560,16 +650,6 @@ func QuotaLTE(v uint64) predicate.Event {
 	return predicate.Event(sql.FieldLTE(FieldQuota, v))
 }
 
-// AttendeesIsNil applies the IsNil predicate on the "attendees" field.
-func AttendeesIsNil() predicate.Event {
-	return predicate.Event(sql.FieldIsNull(FieldAttendees))
-}
-
-// AttendeesNotNil applies the NotNil predicate on the "attendees" field.
-func AttendeesNotNil() predicate.Event {
-	return predicate.Event(sql.FieldNotNull(FieldAttendees))
-}
-
 // HasHost applies the HasEdge predicate on the "host" edge.
 func HasHost() predicate.Event {
 	return predicate.Event(func(s *sql.Selector) {
@@ -608,6 +688,29 @@ func HasPassesIssued() predicate.Event {
 func HasPassesIssuedWith(preds ...predicate.EventPass) predicate.Event {
 	return predicate.Event(func(s *sql.Selector) {
 		step := newPassesIssuedStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAttendances applies the HasEdge predicate on the "attendances" edge.
+func HasAttendances() predicate.Event {
+	return predicate.Event(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AttendancesTable, AttendancesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAttendancesWith applies the HasEdge predicate on the "attendances" edge with a given conditions (other predicates).
+func HasAttendancesWith(preds ...predicate.Attendance) predicate.Event {
+	return predicate.Event(func(s *sql.Selector) {
+		step := newAttendancesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

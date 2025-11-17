@@ -51,16 +51,79 @@ func (_u *EventPassUpdate) AddPassID(v int64) *EventPassUpdate {
 	return _u
 }
 
-// SetIsRedeemed sets the "is_redeemed" field.
-func (_u *EventPassUpdate) SetIsRedeemed(v bool) *EventPassUpdate {
-	_u.mutation.SetIsRedeemed(v)
+// SetName sets the "name" field.
+func (_u *EventPassUpdate) SetName(v string) *EventPassUpdate {
+	_u.mutation.SetName(v)
 	return _u
 }
 
-// SetNillableIsRedeemed sets the "is_redeemed" field if the given value is not nil.
-func (_u *EventPassUpdate) SetNillableIsRedeemed(v *bool) *EventPassUpdate {
+// SetNillableName sets the "name" field if the given value is not nil.
+func (_u *EventPassUpdate) SetNillableName(v *string) *EventPassUpdate {
 	if v != nil {
-		_u.SetIsRedeemed(*v)
+		_u.SetName(*v)
+	}
+	return _u
+}
+
+// SetDescription sets the "description" field.
+func (_u *EventPassUpdate) SetDescription(v string) *EventPassUpdate {
+	_u.mutation.SetDescription(v)
+	return _u
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_u *EventPassUpdate) SetNillableDescription(v *string) *EventPassUpdate {
+	if v != nil {
+		_u.SetDescription(*v)
+	}
+	return _u
+}
+
+// SetThumbnail sets the "thumbnail" field.
+func (_u *EventPassUpdate) SetThumbnail(v string) *EventPassUpdate {
+	_u.mutation.SetThumbnail(v)
+	return _u
+}
+
+// SetNillableThumbnail sets the "thumbnail" field if the given value is not nil.
+func (_u *EventPassUpdate) SetNillableThumbnail(v *string) *EventPassUpdate {
+	if v != nil {
+		_u.SetThumbnail(*v)
+	}
+	return _u
+}
+
+// SetEventType sets the "event_type" field.
+func (_u *EventPassUpdate) SetEventType(v uint8) *EventPassUpdate {
+	_u.mutation.ResetEventType()
+	_u.mutation.SetEventType(v)
+	return _u
+}
+
+// SetNillableEventType sets the "event_type" field if the given value is not nil.
+func (_u *EventPassUpdate) SetNillableEventType(v *uint8) *EventPassUpdate {
+	if v != nil {
+		_u.SetEventType(*v)
+	}
+	return _u
+}
+
+// AddEventType adds value to the "event_type" field.
+func (_u *EventPassUpdate) AddEventType(v int8) *EventPassUpdate {
+	_u.mutation.AddEventType(v)
+	return _u
+}
+
+// SetIsUsed sets the "is_used" field.
+func (_u *EventPassUpdate) SetIsUsed(v bool) *EventPassUpdate {
+	_u.mutation.SetIsUsed(v)
+	return _u
+}
+
+// SetNillableIsUsed sets the "is_used" field if the given value is not nil.
+func (_u *EventPassUpdate) SetNillableIsUsed(v *bool) *EventPassUpdate {
+	if v != nil {
+		_u.SetIsUsed(*v)
 	}
 	return _u
 }
@@ -185,8 +248,23 @@ func (_u *EventPassUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.AddedPassID(); ok {
 		_spec.AddField(eventpass.FieldPassID, field.TypeUint64, value)
 	}
-	if value, ok := _u.mutation.IsRedeemed(); ok {
-		_spec.SetField(eventpass.FieldIsRedeemed, field.TypeBool, value)
+	if value, ok := _u.mutation.Name(); ok {
+		_spec.SetField(eventpass.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Description(); ok {
+		_spec.SetField(eventpass.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Thumbnail(); ok {
+		_spec.SetField(eventpass.FieldThumbnail, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.EventType(); ok {
+		_spec.SetField(eventpass.FieldEventType, field.TypeUint8, value)
+	}
+	if value, ok := _u.mutation.AddedEventType(); ok {
+		_spec.AddField(eventpass.FieldEventType, field.TypeUint8, value)
+	}
+	if value, ok := _u.mutation.IsUsed(); ok {
+		_spec.SetField(eventpass.FieldIsUsed, field.TypeBool, value)
 	}
 	if _u.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -316,16 +394,79 @@ func (_u *EventPassUpdateOne) AddPassID(v int64) *EventPassUpdateOne {
 	return _u
 }
 
-// SetIsRedeemed sets the "is_redeemed" field.
-func (_u *EventPassUpdateOne) SetIsRedeemed(v bool) *EventPassUpdateOne {
-	_u.mutation.SetIsRedeemed(v)
+// SetName sets the "name" field.
+func (_u *EventPassUpdateOne) SetName(v string) *EventPassUpdateOne {
+	_u.mutation.SetName(v)
 	return _u
 }
 
-// SetNillableIsRedeemed sets the "is_redeemed" field if the given value is not nil.
-func (_u *EventPassUpdateOne) SetNillableIsRedeemed(v *bool) *EventPassUpdateOne {
+// SetNillableName sets the "name" field if the given value is not nil.
+func (_u *EventPassUpdateOne) SetNillableName(v *string) *EventPassUpdateOne {
 	if v != nil {
-		_u.SetIsRedeemed(*v)
+		_u.SetName(*v)
+	}
+	return _u
+}
+
+// SetDescription sets the "description" field.
+func (_u *EventPassUpdateOne) SetDescription(v string) *EventPassUpdateOne {
+	_u.mutation.SetDescription(v)
+	return _u
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_u *EventPassUpdateOne) SetNillableDescription(v *string) *EventPassUpdateOne {
+	if v != nil {
+		_u.SetDescription(*v)
+	}
+	return _u
+}
+
+// SetThumbnail sets the "thumbnail" field.
+func (_u *EventPassUpdateOne) SetThumbnail(v string) *EventPassUpdateOne {
+	_u.mutation.SetThumbnail(v)
+	return _u
+}
+
+// SetNillableThumbnail sets the "thumbnail" field if the given value is not nil.
+func (_u *EventPassUpdateOne) SetNillableThumbnail(v *string) *EventPassUpdateOne {
+	if v != nil {
+		_u.SetThumbnail(*v)
+	}
+	return _u
+}
+
+// SetEventType sets the "event_type" field.
+func (_u *EventPassUpdateOne) SetEventType(v uint8) *EventPassUpdateOne {
+	_u.mutation.ResetEventType()
+	_u.mutation.SetEventType(v)
+	return _u
+}
+
+// SetNillableEventType sets the "event_type" field if the given value is not nil.
+func (_u *EventPassUpdateOne) SetNillableEventType(v *uint8) *EventPassUpdateOne {
+	if v != nil {
+		_u.SetEventType(*v)
+	}
+	return _u
+}
+
+// AddEventType adds value to the "event_type" field.
+func (_u *EventPassUpdateOne) AddEventType(v int8) *EventPassUpdateOne {
+	_u.mutation.AddEventType(v)
+	return _u
+}
+
+// SetIsUsed sets the "is_used" field.
+func (_u *EventPassUpdateOne) SetIsUsed(v bool) *EventPassUpdateOne {
+	_u.mutation.SetIsUsed(v)
+	return _u
+}
+
+// SetNillableIsUsed sets the "is_used" field if the given value is not nil.
+func (_u *EventPassUpdateOne) SetNillableIsUsed(v *bool) *EventPassUpdateOne {
+	if v != nil {
+		_u.SetIsUsed(*v)
 	}
 	return _u
 }
@@ -480,8 +621,23 @@ func (_u *EventPassUpdateOne) sqlSave(ctx context.Context) (_node *EventPass, er
 	if value, ok := _u.mutation.AddedPassID(); ok {
 		_spec.AddField(eventpass.FieldPassID, field.TypeUint64, value)
 	}
-	if value, ok := _u.mutation.IsRedeemed(); ok {
-		_spec.SetField(eventpass.FieldIsRedeemed, field.TypeBool, value)
+	if value, ok := _u.mutation.Name(); ok {
+		_spec.SetField(eventpass.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Description(); ok {
+		_spec.SetField(eventpass.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Thumbnail(); ok {
+		_spec.SetField(eventpass.FieldThumbnail, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.EventType(); ok {
+		_spec.SetField(eventpass.FieldEventType, field.TypeUint8, value)
+	}
+	if value, ok := _u.mutation.AddedEventType(); ok {
+		_spec.AddField(eventpass.FieldEventType, field.TypeUint8, value)
+	}
+	if value, ok := _u.mutation.IsUsed(); ok {
+		_spec.SetField(eventpass.FieldIsUsed, field.TypeBool, value)
 	}
 	if _u.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -59,9 +59,29 @@ func PassID(v uint64) predicate.EventPass {
 	return predicate.EventPass(sql.FieldEQ(FieldPassID, v))
 }
 
-// IsRedeemed applies equality check predicate on the "is_redeemed" field. It's identical to IsRedeemedEQ.
-func IsRedeemed(v bool) predicate.EventPass {
-	return predicate.EventPass(sql.FieldEQ(FieldIsRedeemed, v))
+// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
+func Name(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldEQ(FieldName, v))
+}
+
+// Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
+func Description(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldEQ(FieldDescription, v))
+}
+
+// Thumbnail applies equality check predicate on the "thumbnail" field. It's identical to ThumbnailEQ.
+func Thumbnail(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldEQ(FieldThumbnail, v))
+}
+
+// EventType applies equality check predicate on the "event_type" field. It's identical to EventTypeEQ.
+func EventType(v uint8) predicate.EventPass {
+	return predicate.EventPass(sql.FieldEQ(FieldEventType, v))
+}
+
+// IsUsed applies equality check predicate on the "is_used" field. It's identical to IsUsedEQ.
+func IsUsed(v bool) predicate.EventPass {
+	return predicate.EventPass(sql.FieldEQ(FieldIsUsed, v))
 }
 
 // PassIDEQ applies the EQ predicate on the "pass_id" field.
@@ -104,14 +124,249 @@ func PassIDLTE(v uint64) predicate.EventPass {
 	return predicate.EventPass(sql.FieldLTE(FieldPassID, v))
 }
 
-// IsRedeemedEQ applies the EQ predicate on the "is_redeemed" field.
-func IsRedeemedEQ(v bool) predicate.EventPass {
-	return predicate.EventPass(sql.FieldEQ(FieldIsRedeemed, v))
+// NameEQ applies the EQ predicate on the "name" field.
+func NameEQ(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldEQ(FieldName, v))
 }
 
-// IsRedeemedNEQ applies the NEQ predicate on the "is_redeemed" field.
-func IsRedeemedNEQ(v bool) predicate.EventPass {
-	return predicate.EventPass(sql.FieldNEQ(FieldIsRedeemed, v))
+// NameNEQ applies the NEQ predicate on the "name" field.
+func NameNEQ(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldNEQ(FieldName, v))
+}
+
+// NameIn applies the In predicate on the "name" field.
+func NameIn(vs ...string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldIn(FieldName, vs...))
+}
+
+// NameNotIn applies the NotIn predicate on the "name" field.
+func NameNotIn(vs ...string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldNotIn(FieldName, vs...))
+}
+
+// NameGT applies the GT predicate on the "name" field.
+func NameGT(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldGT(FieldName, v))
+}
+
+// NameGTE applies the GTE predicate on the "name" field.
+func NameGTE(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldGTE(FieldName, v))
+}
+
+// NameLT applies the LT predicate on the "name" field.
+func NameLT(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldLT(FieldName, v))
+}
+
+// NameLTE applies the LTE predicate on the "name" field.
+func NameLTE(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldLTE(FieldName, v))
+}
+
+// NameContains applies the Contains predicate on the "name" field.
+func NameContains(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldContains(FieldName, v))
+}
+
+// NameHasPrefix applies the HasPrefix predicate on the "name" field.
+func NameHasPrefix(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldHasPrefix(FieldName, v))
+}
+
+// NameHasSuffix applies the HasSuffix predicate on the "name" field.
+func NameHasSuffix(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldHasSuffix(FieldName, v))
+}
+
+// NameEqualFold applies the EqualFold predicate on the "name" field.
+func NameEqualFold(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldEqualFold(FieldName, v))
+}
+
+// NameContainsFold applies the ContainsFold predicate on the "name" field.
+func NameContainsFold(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldContainsFold(FieldName, v))
+}
+
+// DescriptionEQ applies the EQ predicate on the "description" field.
+func DescriptionEQ(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldEQ(FieldDescription, v))
+}
+
+// DescriptionNEQ applies the NEQ predicate on the "description" field.
+func DescriptionNEQ(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldNEQ(FieldDescription, v))
+}
+
+// DescriptionIn applies the In predicate on the "description" field.
+func DescriptionIn(vs ...string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldIn(FieldDescription, vs...))
+}
+
+// DescriptionNotIn applies the NotIn predicate on the "description" field.
+func DescriptionNotIn(vs ...string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldNotIn(FieldDescription, vs...))
+}
+
+// DescriptionGT applies the GT predicate on the "description" field.
+func DescriptionGT(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldGT(FieldDescription, v))
+}
+
+// DescriptionGTE applies the GTE predicate on the "description" field.
+func DescriptionGTE(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldGTE(FieldDescription, v))
+}
+
+// DescriptionLT applies the LT predicate on the "description" field.
+func DescriptionLT(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldLT(FieldDescription, v))
+}
+
+// DescriptionLTE applies the LTE predicate on the "description" field.
+func DescriptionLTE(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldLTE(FieldDescription, v))
+}
+
+// DescriptionContains applies the Contains predicate on the "description" field.
+func DescriptionContains(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldContains(FieldDescription, v))
+}
+
+// DescriptionHasPrefix applies the HasPrefix predicate on the "description" field.
+func DescriptionHasPrefix(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldHasPrefix(FieldDescription, v))
+}
+
+// DescriptionHasSuffix applies the HasSuffix predicate on the "description" field.
+func DescriptionHasSuffix(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldHasSuffix(FieldDescription, v))
+}
+
+// DescriptionEqualFold applies the EqualFold predicate on the "description" field.
+func DescriptionEqualFold(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldEqualFold(FieldDescription, v))
+}
+
+// DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
+func DescriptionContainsFold(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// ThumbnailEQ applies the EQ predicate on the "thumbnail" field.
+func ThumbnailEQ(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldEQ(FieldThumbnail, v))
+}
+
+// ThumbnailNEQ applies the NEQ predicate on the "thumbnail" field.
+func ThumbnailNEQ(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldNEQ(FieldThumbnail, v))
+}
+
+// ThumbnailIn applies the In predicate on the "thumbnail" field.
+func ThumbnailIn(vs ...string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldIn(FieldThumbnail, vs...))
+}
+
+// ThumbnailNotIn applies the NotIn predicate on the "thumbnail" field.
+func ThumbnailNotIn(vs ...string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldNotIn(FieldThumbnail, vs...))
+}
+
+// ThumbnailGT applies the GT predicate on the "thumbnail" field.
+func ThumbnailGT(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldGT(FieldThumbnail, v))
+}
+
+// ThumbnailGTE applies the GTE predicate on the "thumbnail" field.
+func ThumbnailGTE(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldGTE(FieldThumbnail, v))
+}
+
+// ThumbnailLT applies the LT predicate on the "thumbnail" field.
+func ThumbnailLT(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldLT(FieldThumbnail, v))
+}
+
+// ThumbnailLTE applies the LTE predicate on the "thumbnail" field.
+func ThumbnailLTE(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldLTE(FieldThumbnail, v))
+}
+
+// ThumbnailContains applies the Contains predicate on the "thumbnail" field.
+func ThumbnailContains(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldContains(FieldThumbnail, v))
+}
+
+// ThumbnailHasPrefix applies the HasPrefix predicate on the "thumbnail" field.
+func ThumbnailHasPrefix(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldHasPrefix(FieldThumbnail, v))
+}
+
+// ThumbnailHasSuffix applies the HasSuffix predicate on the "thumbnail" field.
+func ThumbnailHasSuffix(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldHasSuffix(FieldThumbnail, v))
+}
+
+// ThumbnailEqualFold applies the EqualFold predicate on the "thumbnail" field.
+func ThumbnailEqualFold(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldEqualFold(FieldThumbnail, v))
+}
+
+// ThumbnailContainsFold applies the ContainsFold predicate on the "thumbnail" field.
+func ThumbnailContainsFold(v string) predicate.EventPass {
+	return predicate.EventPass(sql.FieldContainsFold(FieldThumbnail, v))
+}
+
+// EventTypeEQ applies the EQ predicate on the "event_type" field.
+func EventTypeEQ(v uint8) predicate.EventPass {
+	return predicate.EventPass(sql.FieldEQ(FieldEventType, v))
+}
+
+// EventTypeNEQ applies the NEQ predicate on the "event_type" field.
+func EventTypeNEQ(v uint8) predicate.EventPass {
+	return predicate.EventPass(sql.FieldNEQ(FieldEventType, v))
+}
+
+// EventTypeIn applies the In predicate on the "event_type" field.
+func EventTypeIn(vs ...uint8) predicate.EventPass {
+	return predicate.EventPass(sql.FieldIn(FieldEventType, vs...))
+}
+
+// EventTypeNotIn applies the NotIn predicate on the "event_type" field.
+func EventTypeNotIn(vs ...uint8) predicate.EventPass {
+	return predicate.EventPass(sql.FieldNotIn(FieldEventType, vs...))
+}
+
+// EventTypeGT applies the GT predicate on the "event_type" field.
+func EventTypeGT(v uint8) predicate.EventPass {
+	return predicate.EventPass(sql.FieldGT(FieldEventType, v))
+}
+
+// EventTypeGTE applies the GTE predicate on the "event_type" field.
+func EventTypeGTE(v uint8) predicate.EventPass {
+	return predicate.EventPass(sql.FieldGTE(FieldEventType, v))
+}
+
+// EventTypeLT applies the LT predicate on the "event_type" field.
+func EventTypeLT(v uint8) predicate.EventPass {
+	return predicate.EventPass(sql.FieldLT(FieldEventType, v))
+}
+
+// EventTypeLTE applies the LTE predicate on the "event_type" field.
+func EventTypeLTE(v uint8) predicate.EventPass {
+	return predicate.EventPass(sql.FieldLTE(FieldEventType, v))
+}
+
+// IsUsedEQ applies the EQ predicate on the "is_used" field.
+func IsUsedEQ(v bool) predicate.EventPass {
+	return predicate.EventPass(sql.FieldEQ(FieldIsUsed, v))
+}
+
+// IsUsedNEQ applies the NEQ predicate on the "is_used" field.
+func IsUsedNEQ(v bool) predicate.EventPass {
+	return predicate.EventPass(sql.FieldNEQ(FieldIsUsed, v))
 }
 
 // HasOwner applies the HasEdge predicate on the "owner" edge.

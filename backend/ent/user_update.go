@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"backend/ent/attendance"
 	"backend/ent/event"
 	"backend/ent/eventpass"
 	"backend/ent/nftaccessory"
@@ -191,6 +192,18 @@ func (_u *UserUpdate) ClearHighlightedMomentID() *UserUpdate {
 	return _u
 }
 
+// SetSocials sets the "socials" field.
+func (_u *UserUpdate) SetSocials(v map[string]string) *UserUpdate {
+	_u.mutation.SetSocials(v)
+	return _u
+}
+
+// ClearSocials clears the value of the "socials" field.
+func (_u *UserUpdate) ClearSocials() *UserUpdate {
+	_u.mutation.ClearSocials()
+	return _u
+}
+
 // AddEventPassIDs adds the "event_passes" edge to the EventPass entity by IDs.
 func (_u *UserUpdate) AddEventPassIDs(ids ...int) *UserUpdate {
 	_u.mutation.AddEventPassIDs(ids...)
@@ -249,6 +262,21 @@ func (_u *UserUpdate) AddAccessories(v ...*NFTAccessory) *UserUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddAccessoryIDs(ids...)
+}
+
+// AddAttendanceIDs adds the "attendances" edge to the Attendance entity by IDs.
+func (_u *UserUpdate) AddAttendanceIDs(ids ...int) *UserUpdate {
+	_u.mutation.AddAttendanceIDs(ids...)
+	return _u
+}
+
+// AddAttendances adds the "attendances" edges to the Attendance entity.
+func (_u *UserUpdate) AddAttendances(v ...*Attendance) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAttendanceIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -340,6 +368,27 @@ func (_u *UserUpdate) RemoveAccessories(v ...*NFTAccessory) *UserUpdate {
 	return _u.RemoveAccessoryIDs(ids...)
 }
 
+// ClearAttendances clears all "attendances" edges to the Attendance entity.
+func (_u *UserUpdate) ClearAttendances() *UserUpdate {
+	_u.mutation.ClearAttendances()
+	return _u
+}
+
+// RemoveAttendanceIDs removes the "attendances" edge to Attendance entities by IDs.
+func (_u *UserUpdate) RemoveAttendanceIDs(ids ...int) *UserUpdate {
+	_u.mutation.RemoveAttendanceIDs(ids...)
+	return _u
+}
+
+// RemoveAttendances removes "attendances" edges to Attendance entities.
+func (_u *UserUpdate) RemoveAttendances(v ...*Attendance) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAttendanceIDs(ids...)
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *UserUpdate) Save(ctx context.Context) (int, error) {
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
@@ -428,6 +477,12 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.HighlightedMomentIDCleared() {
 		_spec.ClearField(user.FieldHighlightedMomentID, field.TypeUint64)
+	}
+	if value, ok := _u.mutation.Socials(); ok {
+		_spec.SetField(user.FieldSocials, field.TypeJSON, value)
+	}
+	if _u.mutation.SocialsCleared() {
+		_spec.ClearField(user.FieldSocials, field.TypeJSON)
 	}
 	if _u.mutation.EventPassesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -602,6 +657,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(nftaccessory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AttendancesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AttendancesTable,
+			Columns: []string{user.AttendancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attendance.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAttendancesIDs(); len(nodes) > 0 && !_u.mutation.AttendancesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AttendancesTable,
+			Columns: []string{user.AttendancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attendance.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AttendancesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AttendancesTable,
+			Columns: []string{user.AttendancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attendance.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -788,6 +888,18 @@ func (_u *UserUpdateOne) ClearHighlightedMomentID() *UserUpdateOne {
 	return _u
 }
 
+// SetSocials sets the "socials" field.
+func (_u *UserUpdateOne) SetSocials(v map[string]string) *UserUpdateOne {
+	_u.mutation.SetSocials(v)
+	return _u
+}
+
+// ClearSocials clears the value of the "socials" field.
+func (_u *UserUpdateOne) ClearSocials() *UserUpdateOne {
+	_u.mutation.ClearSocials()
+	return _u
+}
+
 // AddEventPassIDs adds the "event_passes" edge to the EventPass entity by IDs.
 func (_u *UserUpdateOne) AddEventPassIDs(ids ...int) *UserUpdateOne {
 	_u.mutation.AddEventPassIDs(ids...)
@@ -846,6 +958,21 @@ func (_u *UserUpdateOne) AddAccessories(v ...*NFTAccessory) *UserUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.AddAccessoryIDs(ids...)
+}
+
+// AddAttendanceIDs adds the "attendances" edge to the Attendance entity by IDs.
+func (_u *UserUpdateOne) AddAttendanceIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.AddAttendanceIDs(ids...)
+	return _u
+}
+
+// AddAttendances adds the "attendances" edges to the Attendance entity.
+func (_u *UserUpdateOne) AddAttendances(v ...*Attendance) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAttendanceIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -935,6 +1062,27 @@ func (_u *UserUpdateOne) RemoveAccessories(v ...*NFTAccessory) *UserUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAccessoryIDs(ids...)
+}
+
+// ClearAttendances clears all "attendances" edges to the Attendance entity.
+func (_u *UserUpdateOne) ClearAttendances() *UserUpdateOne {
+	_u.mutation.ClearAttendances()
+	return _u
+}
+
+// RemoveAttendanceIDs removes the "attendances" edge to Attendance entities by IDs.
+func (_u *UserUpdateOne) RemoveAttendanceIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.RemoveAttendanceIDs(ids...)
+	return _u
+}
+
+// RemoveAttendances removes "attendances" edges to Attendance entities.
+func (_u *UserUpdateOne) RemoveAttendances(v ...*Attendance) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAttendanceIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -1055,6 +1203,12 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if _u.mutation.HighlightedMomentIDCleared() {
 		_spec.ClearField(user.FieldHighlightedMomentID, field.TypeUint64)
+	}
+	if value, ok := _u.mutation.Socials(); ok {
+		_spec.SetField(user.FieldSocials, field.TypeJSON, value)
+	}
+	if _u.mutation.SocialsCleared() {
+		_spec.ClearField(user.FieldSocials, field.TypeJSON)
 	}
 	if _u.mutation.EventPassesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1229,6 +1383,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(nftaccessory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AttendancesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AttendancesTable,
+			Columns: []string{user.AttendancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attendance.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAttendancesIDs(); len(nodes) > 0 && !_u.mutation.AttendancesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AttendancesTable,
+			Columns: []string{user.AttendancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attendance.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AttendancesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AttendancesTable,
+			Columns: []string{user.AttendancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attendance.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -28,6 +28,8 @@ const (
 	FieldHighlightedEventPassIds = "highlighted_event_pass_ids"
 	// FieldHighlightedMomentID holds the string denoting the highlighted_moment_id field in the database.
 	FieldHighlightedMomentID = "highlighted_moment_id"
+	// FieldSocials holds the string denoting the socials field in the database.
+	FieldSocials = "socials"
 	// EdgeEventPasses holds the string denoting the event_passes edge name in mutations.
 	EdgeEventPasses = "event_passes"
 	// EdgeHostedEvents holds the string denoting the hosted_events edge name in mutations.
@@ -36,6 +38,8 @@ const (
 	EdgeMoments = "moments"
 	// EdgeAccessories holds the string denoting the accessories edge name in mutations.
 	EdgeAccessories = "accessories"
+	// EdgeAttendances holds the string denoting the attendances edge name in mutations.
+	EdgeAttendances = "attendances"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// EventPassesTable is the table that holds the event_passes relation/edge.
@@ -66,6 +70,13 @@ const (
 	AccessoriesInverseTable = "nft_accessories"
 	// AccessoriesColumn is the table column denoting the accessories relation/edge.
 	AccessoriesColumn = "user_accessories"
+	// AttendancesTable is the table that holds the attendances relation/edge.
+	AttendancesTable = "attendances"
+	// AttendancesInverseTable is the table name for the Attendance entity.
+	// It exists in this package in order to avoid circular dependency with the "attendance" package.
+	AttendancesInverseTable = "attendances"
+	// AttendancesColumn is the table column denoting the attendances relation/edge.
+	AttendancesColumn = "user_attendances"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -79,6 +90,7 @@ var Columns = []string{
 	FieldBgImage,
 	FieldHighlightedEventPassIds,
 	FieldHighlightedMomentID,
+	FieldSocials,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -189,6 +201,20 @@ func ByAccessories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAccessoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByAttendancesCount orders the results by attendances count.
+func ByAttendancesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAttendancesStep(), opts...)
+	}
+}
+
+// ByAttendances orders the results by attendances terms.
+func ByAttendances(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAttendancesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newEventPassesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -215,5 +241,12 @@ func newAccessoriesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AccessoriesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AccessoriesTable, AccessoriesColumn),
+	)
+}
+func newAttendancesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AttendancesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AttendancesTable, AttendancesColumn),
 	)
 }

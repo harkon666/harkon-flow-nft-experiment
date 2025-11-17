@@ -28,6 +28,7 @@ func (User) Fields() []ent.Field {
 		field.String("bg_image").Optional(),
 		field.JSON("highlighted_eventPass_ids", []uint64{}).Optional(),
 		field.Uint64("highlighted_moment_id").Optional(),
+		field.JSON("socials", map[string]string{}).Optional(),
 	}
 }
 
@@ -43,5 +44,6 @@ func (User) Edges() []ent.Edge {
 		// --- Relasi Lama Anda (dari NFTMoment & NFTAccessory) ---
 		edge.To("moments", NFTMoment.Type),
 		edge.To("accessories", NFTAccessory.Type),
+		edge.To("attendances", Attendance.Type),
 	}
 }

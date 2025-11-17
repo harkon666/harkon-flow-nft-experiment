@@ -5,7 +5,6 @@ package ent
 import (
 	"backend/ent/event"
 	"backend/ent/user"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -31,14 +30,16 @@ type Event struct {
 	EventType uint8 `json:"event_type,omitempty"`
 	// Location holds the value of the "location" field.
 	Location string `json:"location,omitempty"`
+	// Lat holds the value of the "lat" field.
+	Lat float64 `json:"lat,omitempty"`
+	// Long holds the value of the "long" field.
+	Long float64 `json:"long,omitempty"`
 	// StartDate holds the value of the "start_date" field.
 	StartDate time.Time `json:"start_date,omitempty"`
 	// EndDate holds the value of the "end_date" field.
 	EndDate time.Time `json:"end_date,omitempty"`
 	// Quota holds the value of the "quota" field.
 	Quota uint64 `json:"quota,omitempty"`
-	// Attendees holds the value of the "attendees" field.
-	Attendees []string `json:"attendees,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EventQuery when eager-loading is set.
 	Edges              EventEdges `json:"edges"`
@@ -52,9 +53,11 @@ type EventEdges struct {
 	Host *User `json:"host,omitempty"`
 	// PassesIssued holds the value of the passes_issued edge.
 	PassesIssued []*EventPass `json:"passes_issued,omitempty"`
+	// Attendances holds the value of the attendances edge.
+	Attendances []*Attendance `json:"attendances,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // HostOrErr returns the Host value or an error if the edge
@@ -77,13 +80,22 @@ func (e EventEdges) PassesIssuedOrErr() ([]*EventPass, error) {
 	return nil, &NotLoadedError{edge: "passes_issued"}
 }
 
+// AttendancesOrErr returns the Attendances value or an error if the edge
+// was not loaded in eager-loading.
+func (e EventEdges) AttendancesOrErr() ([]*Attendance, error) {
+	if e.loadedTypes[2] {
+		return e.Attendances, nil
+	}
+	return nil, &NotLoadedError{edge: "attendances"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Event) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case event.FieldAttendees:
-			values[i] = new([]byte)
+		case event.FieldLat, event.FieldLong:
+			values[i] = new(sql.NullFloat64)
 		case event.FieldID, event.FieldEventID, event.FieldEventType, event.FieldQuota:
 			values[i] = new(sql.NullInt64)
 		case event.FieldName, event.FieldDescription, event.FieldThumbnail, event.FieldLocation:
@@ -149,6 +161,18 @@ func (_m *Event) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Location = value.String
 			}
+		case event.FieldLat:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field lat", values[i])
+			} else if value.Valid {
+				_m.Lat = value.Float64
+			}
+		case event.FieldLong:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field long", values[i])
+			} else if value.Valid {
+				_m.Long = value.Float64
+			}
 		case event.FieldStartDate:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field start_date", values[i])
@@ -166,14 +190,6 @@ func (_m *Event) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field quota", values[i])
 			} else if value.Valid {
 				_m.Quota = uint64(value.Int64)
-			}
-		case event.FieldAttendees:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field attendees", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &_m.Attendees); err != nil {
-					return fmt.Errorf("unmarshal field attendees: %w", err)
-				}
 			}
 		case event.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -203,6 +219,11 @@ func (_m *Event) QueryHost() *UserQuery {
 // QueryPassesIssued queries the "passes_issued" edge of the Event entity.
 func (_m *Event) QueryPassesIssued() *EventPassQuery {
 	return NewEventClient(_m.config).QueryPassesIssued(_m)
+}
+
+// QueryAttendances queries the "attendances" edge of the Event entity.
+func (_m *Event) QueryAttendances() *AttendanceQuery {
+	return NewEventClient(_m.config).QueryAttendances(_m)
 }
 
 // Update returns a builder for updating this Event.
@@ -246,6 +267,12 @@ func (_m *Event) String() string {
 	builder.WriteString("location=")
 	builder.WriteString(_m.Location)
 	builder.WriteString(", ")
+	builder.WriteString("lat=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Lat))
+	builder.WriteString(", ")
+	builder.WriteString("long=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Long))
+	builder.WriteString(", ")
 	builder.WriteString("start_date=")
 	builder.WriteString(_m.StartDate.Format(time.ANSIC))
 	builder.WriteString(", ")
@@ -254,9 +281,6 @@ func (_m *Event) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("quota=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Quota))
-	builder.WriteString(", ")
-	builder.WriteString("attendees=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Attendees))
 	builder.WriteByte(')')
 	return builder.String()
 }

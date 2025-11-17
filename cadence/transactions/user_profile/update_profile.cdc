@@ -8,9 +8,9 @@ transaction(
   nickname: String?,
   bio: String?,
   socials: {String: String},
-  pfp: String,
-  shortDescription: String,
-  bgImage: String,
+  pfp: String?,
+  shortDescription: String?,
+  bgImage: String?,
   highlightedEventPassIds: [UInt64?],
   momentID: UInt64?
 ) {

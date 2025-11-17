@@ -17,8 +17,11 @@ func (EventPass) Fields() []ent.Field {
 		// Ini adalah ID on-chain dari SBT (SBT.uuid)
 		field.Uint64("pass_id").
 			Unique(),
-		// Kita simpan status 'redeem' (bakar)
-		field.Bool("is_redeemed").
+		field.String("name"),
+		field.String("description"),
+		field.String("thumbnail"),
+		field.Uint8("event_type"),
+		field.Bool("is_used").
 			Default(false),
 	}
 }

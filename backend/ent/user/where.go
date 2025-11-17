@@ -589,6 +589,16 @@ func HighlightedMomentIDNotNil() predicate.User {
 	return predicate.User(sql.FieldNotNull(FieldHighlightedMomentID))
 }
 
+// SocialsIsNil applies the IsNil predicate on the "socials" field.
+func SocialsIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldSocials))
+}
+
+// SocialsNotNil applies the NotNil predicate on the "socials" field.
+func SocialsNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldSocials))
+}
+
 // HasEventPasses applies the HasEdge predicate on the "event_passes" edge.
 func HasEventPasses() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -673,6 +683,29 @@ func HasAccessories() predicate.User {
 func HasAccessoriesWith(preds ...predicate.NFTAccessory) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := newAccessoriesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAttendances applies the HasEdge predicate on the "attendances" edge.
+func HasAttendances() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AttendancesTable, AttendancesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAttendancesWith applies the HasEdge predicate on the "attendances" edge with a given conditions (other predicates).
+func HasAttendancesWith(preds ...predicate.Attendance) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newAttendancesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
