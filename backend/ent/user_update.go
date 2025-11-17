@@ -3,6 +3,8 @@
 package ent
 
 import (
+	"backend/ent/event"
+	"backend/ent/eventpass"
 	"backend/ent/nftaccessory"
 	"backend/ent/nftmoment"
 	"backend/ent/predicate"
@@ -13,6 +15,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -43,19 +46,179 @@ func (_u *UserUpdate) SetNillableAddress(v *string) *UserUpdate {
 	return _u
 }
 
-// AddAccessoryIDs adds the "accessories" edge to the NFTAccessory entity by IDs.
-func (_u *UserUpdate) AddAccessoryIDs(ids ...int) *UserUpdate {
-	_u.mutation.AddAccessoryIDs(ids...)
+// SetNickname sets the "nickname" field.
+func (_u *UserUpdate) SetNickname(v string) *UserUpdate {
+	_u.mutation.SetNickname(v)
 	return _u
 }
 
-// AddAccessories adds the "accessories" edges to the NFTAccessory entity.
-func (_u *UserUpdate) AddAccessories(v ...*NFTAccessory) *UserUpdate {
+// SetNillableNickname sets the "nickname" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableNickname(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetNickname(*v)
+	}
+	return _u
+}
+
+// ClearNickname clears the value of the "nickname" field.
+func (_u *UserUpdate) ClearNickname() *UserUpdate {
+	_u.mutation.ClearNickname()
+	return _u
+}
+
+// SetBio sets the "bio" field.
+func (_u *UserUpdate) SetBio(v string) *UserUpdate {
+	_u.mutation.SetBio(v)
+	return _u
+}
+
+// SetNillableBio sets the "bio" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableBio(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetBio(*v)
+	}
+	return _u
+}
+
+// ClearBio clears the value of the "bio" field.
+func (_u *UserUpdate) ClearBio() *UserUpdate {
+	_u.mutation.ClearBio()
+	return _u
+}
+
+// SetPfp sets the "pfp" field.
+func (_u *UserUpdate) SetPfp(v string) *UserUpdate {
+	_u.mutation.SetPfp(v)
+	return _u
+}
+
+// SetNillablePfp sets the "pfp" field if the given value is not nil.
+func (_u *UserUpdate) SetNillablePfp(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetPfp(*v)
+	}
+	return _u
+}
+
+// ClearPfp clears the value of the "pfp" field.
+func (_u *UserUpdate) ClearPfp() *UserUpdate {
+	_u.mutation.ClearPfp()
+	return _u
+}
+
+// SetShortDescription sets the "short_description" field.
+func (_u *UserUpdate) SetShortDescription(v string) *UserUpdate {
+	_u.mutation.SetShortDescription(v)
+	return _u
+}
+
+// SetNillableShortDescription sets the "short_description" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableShortDescription(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetShortDescription(*v)
+	}
+	return _u
+}
+
+// ClearShortDescription clears the value of the "short_description" field.
+func (_u *UserUpdate) ClearShortDescription() *UserUpdate {
+	_u.mutation.ClearShortDescription()
+	return _u
+}
+
+// SetBgImage sets the "bg_image" field.
+func (_u *UserUpdate) SetBgImage(v string) *UserUpdate {
+	_u.mutation.SetBgImage(v)
+	return _u
+}
+
+// SetNillableBgImage sets the "bg_image" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableBgImage(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetBgImage(*v)
+	}
+	return _u
+}
+
+// ClearBgImage clears the value of the "bg_image" field.
+func (_u *UserUpdate) ClearBgImage() *UserUpdate {
+	_u.mutation.ClearBgImage()
+	return _u
+}
+
+// SetHighlightedEventPassIds sets the "highlighted_eventPass_ids" field.
+func (_u *UserUpdate) SetHighlightedEventPassIds(v []uint64) *UserUpdate {
+	_u.mutation.SetHighlightedEventPassIds(v)
+	return _u
+}
+
+// AppendHighlightedEventPassIds appends value to the "highlighted_eventPass_ids" field.
+func (_u *UserUpdate) AppendHighlightedEventPassIds(v []uint64) *UserUpdate {
+	_u.mutation.AppendHighlightedEventPassIds(v)
+	return _u
+}
+
+// ClearHighlightedEventPassIds clears the value of the "highlighted_eventPass_ids" field.
+func (_u *UserUpdate) ClearHighlightedEventPassIds() *UserUpdate {
+	_u.mutation.ClearHighlightedEventPassIds()
+	return _u
+}
+
+// SetHighlightedMomentID sets the "highlighted_moment_id" field.
+func (_u *UserUpdate) SetHighlightedMomentID(v uint64) *UserUpdate {
+	_u.mutation.ResetHighlightedMomentID()
+	_u.mutation.SetHighlightedMomentID(v)
+	return _u
+}
+
+// SetNillableHighlightedMomentID sets the "highlighted_moment_id" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableHighlightedMomentID(v *uint64) *UserUpdate {
+	if v != nil {
+		_u.SetHighlightedMomentID(*v)
+	}
+	return _u
+}
+
+// AddHighlightedMomentID adds value to the "highlighted_moment_id" field.
+func (_u *UserUpdate) AddHighlightedMomentID(v int64) *UserUpdate {
+	_u.mutation.AddHighlightedMomentID(v)
+	return _u
+}
+
+// ClearHighlightedMomentID clears the value of the "highlighted_moment_id" field.
+func (_u *UserUpdate) ClearHighlightedMomentID() *UserUpdate {
+	_u.mutation.ClearHighlightedMomentID()
+	return _u
+}
+
+// AddEventPassIDs adds the "event_passes" edge to the EventPass entity by IDs.
+func (_u *UserUpdate) AddEventPassIDs(ids ...int) *UserUpdate {
+	_u.mutation.AddEventPassIDs(ids...)
+	return _u
+}
+
+// AddEventPasses adds the "event_passes" edges to the EventPass entity.
+func (_u *UserUpdate) AddEventPasses(v ...*EventPass) *UserUpdate {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddAccessoryIDs(ids...)
+	return _u.AddEventPassIDs(ids...)
+}
+
+// AddHostedEventIDs adds the "hosted_events" edge to the Event entity by IDs.
+func (_u *UserUpdate) AddHostedEventIDs(ids ...int) *UserUpdate {
+	_u.mutation.AddHostedEventIDs(ids...)
+	return _u
+}
+
+// AddHostedEvents adds the "hosted_events" edges to the Event entity.
+func (_u *UserUpdate) AddHostedEvents(v ...*Event) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddHostedEventIDs(ids...)
 }
 
 // AddMomentIDs adds the "moments" edge to the NFTMoment entity by IDs.
@@ -73,30 +236,66 @@ func (_u *UserUpdate) AddMoments(v ...*NFTMoment) *UserUpdate {
 	return _u.AddMomentIDs(ids...)
 }
 
+// AddAccessoryIDs adds the "accessories" edge to the NFTAccessory entity by IDs.
+func (_u *UserUpdate) AddAccessoryIDs(ids ...int) *UserUpdate {
+	_u.mutation.AddAccessoryIDs(ids...)
+	return _u
+}
+
+// AddAccessories adds the "accessories" edges to the NFTAccessory entity.
+func (_u *UserUpdate) AddAccessories(v ...*NFTAccessory) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAccessoryIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
 }
 
-// ClearAccessories clears all "accessories" edges to the NFTAccessory entity.
-func (_u *UserUpdate) ClearAccessories() *UserUpdate {
-	_u.mutation.ClearAccessories()
+// ClearEventPasses clears all "event_passes" edges to the EventPass entity.
+func (_u *UserUpdate) ClearEventPasses() *UserUpdate {
+	_u.mutation.ClearEventPasses()
 	return _u
 }
 
-// RemoveAccessoryIDs removes the "accessories" edge to NFTAccessory entities by IDs.
-func (_u *UserUpdate) RemoveAccessoryIDs(ids ...int) *UserUpdate {
-	_u.mutation.RemoveAccessoryIDs(ids...)
+// RemoveEventPassIDs removes the "event_passes" edge to EventPass entities by IDs.
+func (_u *UserUpdate) RemoveEventPassIDs(ids ...int) *UserUpdate {
+	_u.mutation.RemoveEventPassIDs(ids...)
 	return _u
 }
 
-// RemoveAccessories removes "accessories" edges to NFTAccessory entities.
-func (_u *UserUpdate) RemoveAccessories(v ...*NFTAccessory) *UserUpdate {
+// RemoveEventPasses removes "event_passes" edges to EventPass entities.
+func (_u *UserUpdate) RemoveEventPasses(v ...*EventPass) *UserUpdate {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveAccessoryIDs(ids...)
+	return _u.RemoveEventPassIDs(ids...)
+}
+
+// ClearHostedEvents clears all "hosted_events" edges to the Event entity.
+func (_u *UserUpdate) ClearHostedEvents() *UserUpdate {
+	_u.mutation.ClearHostedEvents()
+	return _u
+}
+
+// RemoveHostedEventIDs removes the "hosted_events" edge to Event entities by IDs.
+func (_u *UserUpdate) RemoveHostedEventIDs(ids ...int) *UserUpdate {
+	_u.mutation.RemoveHostedEventIDs(ids...)
+	return _u
+}
+
+// RemoveHostedEvents removes "hosted_events" edges to Event entities.
+func (_u *UserUpdate) RemoveHostedEvents(v ...*Event) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveHostedEventIDs(ids...)
 }
 
 // ClearMoments clears all "moments" edges to the NFTMoment entity.
@@ -118,6 +317,27 @@ func (_u *UserUpdate) RemoveMoments(v ...*NFTMoment) *UserUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveMomentIDs(ids...)
+}
+
+// ClearAccessories clears all "accessories" edges to the NFTAccessory entity.
+func (_u *UserUpdate) ClearAccessories() *UserUpdate {
+	_u.mutation.ClearAccessories()
+	return _u
+}
+
+// RemoveAccessoryIDs removes the "accessories" edge to NFTAccessory entities by IDs.
+func (_u *UserUpdate) RemoveAccessoryIDs(ids ...int) *UserUpdate {
+	_u.mutation.RemoveAccessoryIDs(ids...)
+	return _u
+}
+
+// RemoveAccessories removes "accessories" edges to NFTAccessory entities.
+func (_u *UserUpdate) RemoveAccessories(v ...*NFTAccessory) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAccessoryIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -159,28 +379,78 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Address(); ok {
 		_spec.SetField(user.FieldAddress, field.TypeString, value)
 	}
-	if _u.mutation.AccessoriesCleared() {
+	if value, ok := _u.mutation.Nickname(); ok {
+		_spec.SetField(user.FieldNickname, field.TypeString, value)
+	}
+	if _u.mutation.NicknameCleared() {
+		_spec.ClearField(user.FieldNickname, field.TypeString)
+	}
+	if value, ok := _u.mutation.Bio(); ok {
+		_spec.SetField(user.FieldBio, field.TypeString, value)
+	}
+	if _u.mutation.BioCleared() {
+		_spec.ClearField(user.FieldBio, field.TypeString)
+	}
+	if value, ok := _u.mutation.Pfp(); ok {
+		_spec.SetField(user.FieldPfp, field.TypeString, value)
+	}
+	if _u.mutation.PfpCleared() {
+		_spec.ClearField(user.FieldPfp, field.TypeString)
+	}
+	if value, ok := _u.mutation.ShortDescription(); ok {
+		_spec.SetField(user.FieldShortDescription, field.TypeString, value)
+	}
+	if _u.mutation.ShortDescriptionCleared() {
+		_spec.ClearField(user.FieldShortDescription, field.TypeString)
+	}
+	if value, ok := _u.mutation.BgImage(); ok {
+		_spec.SetField(user.FieldBgImage, field.TypeString, value)
+	}
+	if _u.mutation.BgImageCleared() {
+		_spec.ClearField(user.FieldBgImage, field.TypeString)
+	}
+	if value, ok := _u.mutation.HighlightedEventPassIds(); ok {
+		_spec.SetField(user.FieldHighlightedEventPassIds, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedHighlightedEventPassIds(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldHighlightedEventPassIds, value)
+		})
+	}
+	if _u.mutation.HighlightedEventPassIdsCleared() {
+		_spec.ClearField(user.FieldHighlightedEventPassIds, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.HighlightedMomentID(); ok {
+		_spec.SetField(user.FieldHighlightedMomentID, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedHighlightedMomentID(); ok {
+		_spec.AddField(user.FieldHighlightedMomentID, field.TypeUint64, value)
+	}
+	if _u.mutation.HighlightedMomentIDCleared() {
+		_spec.ClearField(user.FieldHighlightedMomentID, field.TypeUint64)
+	}
+	if _u.mutation.EventPassesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.AccessoriesTable,
-			Columns: []string{user.AccessoriesColumn},
+			Table:   user.EventPassesTable,
+			Columns: []string{user.EventPassesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(nftaccessory.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(eventpass.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedAccessoriesIDs(); len(nodes) > 0 && !_u.mutation.AccessoriesCleared() {
+	if nodes := _u.mutation.RemovedEventPassesIDs(); len(nodes) > 0 && !_u.mutation.EventPassesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.AccessoriesTable,
-			Columns: []string{user.AccessoriesColumn},
+			Table:   user.EventPassesTable,
+			Columns: []string{user.EventPassesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(nftaccessory.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(eventpass.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -188,15 +458,60 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.AccessoriesIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.EventPassesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.AccessoriesTable,
-			Columns: []string{user.AccessoriesColumn},
+			Table:   user.EventPassesTable,
+			Columns: []string{user.EventPassesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(nftaccessory.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(eventpass.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.HostedEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HostedEventsTable,
+			Columns: []string{user.HostedEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedHostedEventsIDs(); len(nodes) > 0 && !_u.mutation.HostedEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HostedEventsTable,
+			Columns: []string{user.HostedEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.HostedEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HostedEventsTable,
+			Columns: []string{user.HostedEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -249,6 +564,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.AccessoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AccessoriesTable,
+			Columns: []string{user.AccessoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nftaccessory.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAccessoriesIDs(); len(nodes) > 0 && !_u.mutation.AccessoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AccessoriesTable,
+			Columns: []string{user.AccessoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nftaccessory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AccessoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AccessoriesTable,
+			Columns: []string{user.AccessoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nftaccessory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -283,19 +643,179 @@ func (_u *UserUpdateOne) SetNillableAddress(v *string) *UserUpdateOne {
 	return _u
 }
 
-// AddAccessoryIDs adds the "accessories" edge to the NFTAccessory entity by IDs.
-func (_u *UserUpdateOne) AddAccessoryIDs(ids ...int) *UserUpdateOne {
-	_u.mutation.AddAccessoryIDs(ids...)
+// SetNickname sets the "nickname" field.
+func (_u *UserUpdateOne) SetNickname(v string) *UserUpdateOne {
+	_u.mutation.SetNickname(v)
 	return _u
 }
 
-// AddAccessories adds the "accessories" edges to the NFTAccessory entity.
-func (_u *UserUpdateOne) AddAccessories(v ...*NFTAccessory) *UserUpdateOne {
+// SetNillableNickname sets the "nickname" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableNickname(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetNickname(*v)
+	}
+	return _u
+}
+
+// ClearNickname clears the value of the "nickname" field.
+func (_u *UserUpdateOne) ClearNickname() *UserUpdateOne {
+	_u.mutation.ClearNickname()
+	return _u
+}
+
+// SetBio sets the "bio" field.
+func (_u *UserUpdateOne) SetBio(v string) *UserUpdateOne {
+	_u.mutation.SetBio(v)
+	return _u
+}
+
+// SetNillableBio sets the "bio" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableBio(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetBio(*v)
+	}
+	return _u
+}
+
+// ClearBio clears the value of the "bio" field.
+func (_u *UserUpdateOne) ClearBio() *UserUpdateOne {
+	_u.mutation.ClearBio()
+	return _u
+}
+
+// SetPfp sets the "pfp" field.
+func (_u *UserUpdateOne) SetPfp(v string) *UserUpdateOne {
+	_u.mutation.SetPfp(v)
+	return _u
+}
+
+// SetNillablePfp sets the "pfp" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillablePfp(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetPfp(*v)
+	}
+	return _u
+}
+
+// ClearPfp clears the value of the "pfp" field.
+func (_u *UserUpdateOne) ClearPfp() *UserUpdateOne {
+	_u.mutation.ClearPfp()
+	return _u
+}
+
+// SetShortDescription sets the "short_description" field.
+func (_u *UserUpdateOne) SetShortDescription(v string) *UserUpdateOne {
+	_u.mutation.SetShortDescription(v)
+	return _u
+}
+
+// SetNillableShortDescription sets the "short_description" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableShortDescription(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetShortDescription(*v)
+	}
+	return _u
+}
+
+// ClearShortDescription clears the value of the "short_description" field.
+func (_u *UserUpdateOne) ClearShortDescription() *UserUpdateOne {
+	_u.mutation.ClearShortDescription()
+	return _u
+}
+
+// SetBgImage sets the "bg_image" field.
+func (_u *UserUpdateOne) SetBgImage(v string) *UserUpdateOne {
+	_u.mutation.SetBgImage(v)
+	return _u
+}
+
+// SetNillableBgImage sets the "bg_image" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableBgImage(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetBgImage(*v)
+	}
+	return _u
+}
+
+// ClearBgImage clears the value of the "bg_image" field.
+func (_u *UserUpdateOne) ClearBgImage() *UserUpdateOne {
+	_u.mutation.ClearBgImage()
+	return _u
+}
+
+// SetHighlightedEventPassIds sets the "highlighted_eventPass_ids" field.
+func (_u *UserUpdateOne) SetHighlightedEventPassIds(v []uint64) *UserUpdateOne {
+	_u.mutation.SetHighlightedEventPassIds(v)
+	return _u
+}
+
+// AppendHighlightedEventPassIds appends value to the "highlighted_eventPass_ids" field.
+func (_u *UserUpdateOne) AppendHighlightedEventPassIds(v []uint64) *UserUpdateOne {
+	_u.mutation.AppendHighlightedEventPassIds(v)
+	return _u
+}
+
+// ClearHighlightedEventPassIds clears the value of the "highlighted_eventPass_ids" field.
+func (_u *UserUpdateOne) ClearHighlightedEventPassIds() *UserUpdateOne {
+	_u.mutation.ClearHighlightedEventPassIds()
+	return _u
+}
+
+// SetHighlightedMomentID sets the "highlighted_moment_id" field.
+func (_u *UserUpdateOne) SetHighlightedMomentID(v uint64) *UserUpdateOne {
+	_u.mutation.ResetHighlightedMomentID()
+	_u.mutation.SetHighlightedMomentID(v)
+	return _u
+}
+
+// SetNillableHighlightedMomentID sets the "highlighted_moment_id" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableHighlightedMomentID(v *uint64) *UserUpdateOne {
+	if v != nil {
+		_u.SetHighlightedMomentID(*v)
+	}
+	return _u
+}
+
+// AddHighlightedMomentID adds value to the "highlighted_moment_id" field.
+func (_u *UserUpdateOne) AddHighlightedMomentID(v int64) *UserUpdateOne {
+	_u.mutation.AddHighlightedMomentID(v)
+	return _u
+}
+
+// ClearHighlightedMomentID clears the value of the "highlighted_moment_id" field.
+func (_u *UserUpdateOne) ClearHighlightedMomentID() *UserUpdateOne {
+	_u.mutation.ClearHighlightedMomentID()
+	return _u
+}
+
+// AddEventPassIDs adds the "event_passes" edge to the EventPass entity by IDs.
+func (_u *UserUpdateOne) AddEventPassIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.AddEventPassIDs(ids...)
+	return _u
+}
+
+// AddEventPasses adds the "event_passes" edges to the EventPass entity.
+func (_u *UserUpdateOne) AddEventPasses(v ...*EventPass) *UserUpdateOne {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddAccessoryIDs(ids...)
+	return _u.AddEventPassIDs(ids...)
+}
+
+// AddHostedEventIDs adds the "hosted_events" edge to the Event entity by IDs.
+func (_u *UserUpdateOne) AddHostedEventIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.AddHostedEventIDs(ids...)
+	return _u
+}
+
+// AddHostedEvents adds the "hosted_events" edges to the Event entity.
+func (_u *UserUpdateOne) AddHostedEvents(v ...*Event) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddHostedEventIDs(ids...)
 }
 
 // AddMomentIDs adds the "moments" edge to the NFTMoment entity by IDs.
@@ -313,30 +833,66 @@ func (_u *UserUpdateOne) AddMoments(v ...*NFTMoment) *UserUpdateOne {
 	return _u.AddMomentIDs(ids...)
 }
 
+// AddAccessoryIDs adds the "accessories" edge to the NFTAccessory entity by IDs.
+func (_u *UserUpdateOne) AddAccessoryIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.AddAccessoryIDs(ids...)
+	return _u
+}
+
+// AddAccessories adds the "accessories" edges to the NFTAccessory entity.
+func (_u *UserUpdateOne) AddAccessories(v ...*NFTAccessory) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAccessoryIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
 }
 
-// ClearAccessories clears all "accessories" edges to the NFTAccessory entity.
-func (_u *UserUpdateOne) ClearAccessories() *UserUpdateOne {
-	_u.mutation.ClearAccessories()
+// ClearEventPasses clears all "event_passes" edges to the EventPass entity.
+func (_u *UserUpdateOne) ClearEventPasses() *UserUpdateOne {
+	_u.mutation.ClearEventPasses()
 	return _u
 }
 
-// RemoveAccessoryIDs removes the "accessories" edge to NFTAccessory entities by IDs.
-func (_u *UserUpdateOne) RemoveAccessoryIDs(ids ...int) *UserUpdateOne {
-	_u.mutation.RemoveAccessoryIDs(ids...)
+// RemoveEventPassIDs removes the "event_passes" edge to EventPass entities by IDs.
+func (_u *UserUpdateOne) RemoveEventPassIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.RemoveEventPassIDs(ids...)
 	return _u
 }
 
-// RemoveAccessories removes "accessories" edges to NFTAccessory entities.
-func (_u *UserUpdateOne) RemoveAccessories(v ...*NFTAccessory) *UserUpdateOne {
+// RemoveEventPasses removes "event_passes" edges to EventPass entities.
+func (_u *UserUpdateOne) RemoveEventPasses(v ...*EventPass) *UserUpdateOne {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveAccessoryIDs(ids...)
+	return _u.RemoveEventPassIDs(ids...)
+}
+
+// ClearHostedEvents clears all "hosted_events" edges to the Event entity.
+func (_u *UserUpdateOne) ClearHostedEvents() *UserUpdateOne {
+	_u.mutation.ClearHostedEvents()
+	return _u
+}
+
+// RemoveHostedEventIDs removes the "hosted_events" edge to Event entities by IDs.
+func (_u *UserUpdateOne) RemoveHostedEventIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.RemoveHostedEventIDs(ids...)
+	return _u
+}
+
+// RemoveHostedEvents removes "hosted_events" edges to Event entities.
+func (_u *UserUpdateOne) RemoveHostedEvents(v ...*Event) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveHostedEventIDs(ids...)
 }
 
 // ClearMoments clears all "moments" edges to the NFTMoment entity.
@@ -358,6 +914,27 @@ func (_u *UserUpdateOne) RemoveMoments(v ...*NFTMoment) *UserUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveMomentIDs(ids...)
+}
+
+// ClearAccessories clears all "accessories" edges to the NFTAccessory entity.
+func (_u *UserUpdateOne) ClearAccessories() *UserUpdateOne {
+	_u.mutation.ClearAccessories()
+	return _u
+}
+
+// RemoveAccessoryIDs removes the "accessories" edge to NFTAccessory entities by IDs.
+func (_u *UserUpdateOne) RemoveAccessoryIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.RemoveAccessoryIDs(ids...)
+	return _u
+}
+
+// RemoveAccessories removes "accessories" edges to NFTAccessory entities.
+func (_u *UserUpdateOne) RemoveAccessories(v ...*NFTAccessory) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAccessoryIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -429,28 +1006,78 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	if value, ok := _u.mutation.Address(); ok {
 		_spec.SetField(user.FieldAddress, field.TypeString, value)
 	}
-	if _u.mutation.AccessoriesCleared() {
+	if value, ok := _u.mutation.Nickname(); ok {
+		_spec.SetField(user.FieldNickname, field.TypeString, value)
+	}
+	if _u.mutation.NicknameCleared() {
+		_spec.ClearField(user.FieldNickname, field.TypeString)
+	}
+	if value, ok := _u.mutation.Bio(); ok {
+		_spec.SetField(user.FieldBio, field.TypeString, value)
+	}
+	if _u.mutation.BioCleared() {
+		_spec.ClearField(user.FieldBio, field.TypeString)
+	}
+	if value, ok := _u.mutation.Pfp(); ok {
+		_spec.SetField(user.FieldPfp, field.TypeString, value)
+	}
+	if _u.mutation.PfpCleared() {
+		_spec.ClearField(user.FieldPfp, field.TypeString)
+	}
+	if value, ok := _u.mutation.ShortDescription(); ok {
+		_spec.SetField(user.FieldShortDescription, field.TypeString, value)
+	}
+	if _u.mutation.ShortDescriptionCleared() {
+		_spec.ClearField(user.FieldShortDescription, field.TypeString)
+	}
+	if value, ok := _u.mutation.BgImage(); ok {
+		_spec.SetField(user.FieldBgImage, field.TypeString, value)
+	}
+	if _u.mutation.BgImageCleared() {
+		_spec.ClearField(user.FieldBgImage, field.TypeString)
+	}
+	if value, ok := _u.mutation.HighlightedEventPassIds(); ok {
+		_spec.SetField(user.FieldHighlightedEventPassIds, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedHighlightedEventPassIds(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldHighlightedEventPassIds, value)
+		})
+	}
+	if _u.mutation.HighlightedEventPassIdsCleared() {
+		_spec.ClearField(user.FieldHighlightedEventPassIds, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.HighlightedMomentID(); ok {
+		_spec.SetField(user.FieldHighlightedMomentID, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedHighlightedMomentID(); ok {
+		_spec.AddField(user.FieldHighlightedMomentID, field.TypeUint64, value)
+	}
+	if _u.mutation.HighlightedMomentIDCleared() {
+		_spec.ClearField(user.FieldHighlightedMomentID, field.TypeUint64)
+	}
+	if _u.mutation.EventPassesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.AccessoriesTable,
-			Columns: []string{user.AccessoriesColumn},
+			Table:   user.EventPassesTable,
+			Columns: []string{user.EventPassesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(nftaccessory.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(eventpass.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedAccessoriesIDs(); len(nodes) > 0 && !_u.mutation.AccessoriesCleared() {
+	if nodes := _u.mutation.RemovedEventPassesIDs(); len(nodes) > 0 && !_u.mutation.EventPassesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.AccessoriesTable,
-			Columns: []string{user.AccessoriesColumn},
+			Table:   user.EventPassesTable,
+			Columns: []string{user.EventPassesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(nftaccessory.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(eventpass.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -458,15 +1085,60 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.AccessoriesIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.EventPassesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.AccessoriesTable,
-			Columns: []string{user.AccessoriesColumn},
+			Table:   user.EventPassesTable,
+			Columns: []string{user.EventPassesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(nftaccessory.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(eventpass.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.HostedEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HostedEventsTable,
+			Columns: []string{user.HostedEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedHostedEventsIDs(); len(nodes) > 0 && !_u.mutation.HostedEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HostedEventsTable,
+			Columns: []string{user.HostedEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.HostedEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HostedEventsTable,
+			Columns: []string{user.HostedEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -512,6 +1184,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(nftmoment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AccessoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AccessoriesTable,
+			Columns: []string{user.AccessoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nftaccessory.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAccessoriesIDs(); len(nodes) > 0 && !_u.mutation.AccessoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AccessoriesTable,
+			Columns: []string{user.AccessoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nftaccessory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AccessoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AccessoriesTable,
+			Columns: []string{user.AccessoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nftaccessory.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

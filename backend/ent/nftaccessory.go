@@ -26,8 +26,8 @@ type NFTAccessory struct {
 	Description string `json:"description,omitempty"`
 	// Thumbnail holds the value of the "thumbnail" field.
 	Thumbnail string `json:"thumbnail,omitempty"`
-	// EquipmentType holds the value of the "equipmentType" field.
-	EquipmentType string `json:"equipmentType,omitempty"`
+	// EquipmentType holds the value of the "equipment_type" field.
+	EquipmentType string `json:"equipment_type,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the NFTAccessoryQuery when eager-loading is set.
 	Edges                           NFTAccessoryEdges `json:"edges"`
@@ -129,7 +129,7 @@ func (_m *NFTAccessory) assignValues(columns []string, values []any) error {
 			}
 		case nftaccessory.FieldEquipmentType:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field equipmentType", values[i])
+				return fmt.Errorf("unexpected type %T for field equipment_type", values[i])
 			} else if value.Valid {
 				_m.EquipmentType = value.String
 			}
@@ -205,7 +205,7 @@ func (_m *NFTAccessory) String() string {
 	builder.WriteString("thumbnail=")
 	builder.WriteString(_m.Thumbnail)
 	builder.WriteString(", ")
-	builder.WriteString("equipmentType=")
+	builder.WriteString("equipment_type=")
 	builder.WriteString(_m.EquipmentType)
 	builder.WriteByte(')')
 	return builder.String()

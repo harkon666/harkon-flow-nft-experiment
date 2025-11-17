@@ -2,8 +2,19 @@
 
 package ent
 
+import (
+	"backend/ent/eventpass"
+	"backend/ent/schema"
+)
+
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	eventpassFields := schema.EventPass{}.Fields()
+	_ = eventpassFields
+	// eventpassDescIsRedeemed is the schema descriptor for is_redeemed field.
+	eventpassDescIsRedeemed := eventpassFields[1].Descriptor()
+	// eventpass.DefaultIsRedeemed holds the default value on creation for the is_redeemed field.
+	eventpass.DefaultIsRedeemed = eventpassDescIsRedeemed.Default.(bool)
 }

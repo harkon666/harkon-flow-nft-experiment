@@ -92,13 +92,13 @@ func (_u *NFTAccessoryUpdate) SetNillableThumbnail(v *string) *NFTAccessoryUpdat
 	return _u
 }
 
-// SetEquipmentType sets the "equipmentType" field.
+// SetEquipmentType sets the "equipment_type" field.
 func (_u *NFTAccessoryUpdate) SetEquipmentType(v string) *NFTAccessoryUpdate {
 	_u.mutation.SetEquipmentType(v)
 	return _u
 }
 
-// SetNillableEquipmentType sets the "equipmentType" field if the given value is not nil.
+// SetNillableEquipmentType sets the "equipment_type" field if the given value is not nil.
 func (_u *NFTAccessoryUpdate) SetNillableEquipmentType(v *string) *NFTAccessoryUpdate {
 	if v != nil {
 		_u.SetEquipmentType(*v)
@@ -359,13 +359,13 @@ func (_u *NFTAccessoryUpdateOne) SetNillableThumbnail(v *string) *NFTAccessoryUp
 	return _u
 }
 
-// SetEquipmentType sets the "equipmentType" field.
+// SetEquipmentType sets the "equipment_type" field.
 func (_u *NFTAccessoryUpdateOne) SetEquipmentType(v string) *NFTAccessoryUpdateOne {
 	_u.mutation.SetEquipmentType(v)
 	return _u
 }
 
-// SetNillableEquipmentType sets the "equipmentType" field if the given value is not nil.
+// SetNillableEquipmentType sets the "equipment_type" field if the given value is not nil.
 func (_u *NFTAccessoryUpdateOne) SetNillableEquipmentType(v *string) *NFTAccessoryUpdateOne {
 	if v != nil {
 		_u.SetEquipmentType(*v)

@@ -8,6 +8,7 @@ import ( // Dibutuhkan jika Anda akan melakukan operasi DB
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/onflow/cadence"
 	"github.com/onflow/flow-go-sdk"
@@ -40,6 +41,61 @@ func getCadenceField[T cadence.Value](fields map[string]cadence.Value, key strin
 
 	// 3. Kembalikan nilai yang sudah di-type-assert
 	return typedValue, nil
+}
+
+func HandleCapabilityIssued(ctx context.Context, ev flow.Event, client *ent.Client) {
+	log.Println("Memproses event StorageCapabilityControllerIssued...")
+
+	// Dapatkan semua field dari event
+	Fields := ev.Value.FieldsMappedByName()
+	cadenceTypeString := Fields["type"].String()
+
+	if !strings.Contains(cadenceTypeString, "A.f8d6e0586b0a20c7.UserProfile.Profile") {
+		return
+	}
+
+	// 4. CEK ANDA: Apakah ini event untuk UserProfile?
+	//    Kita cek apakah string-nya mengandung ".UserProfile."
+
+	log.Println("Event UserProfile terdeteksi. Memproses...")
+
+	// 5. Ambil & Parse 'address' field
+	ownerAddressCadence, err := getCadenceField[cadence.Address](Fields, "address")
+
+	// Dapatkan alamat sebagai string (misal: "0xf8d6e0586b0a20c7")
+	userAddress := ownerAddressCadence.String()
+
+	// 6. Pola "Get-or-Create" (Sangat Penting)
+	// Coba cari user dulu
+	existingUser, err := client.User.Query().
+		Where(user.AddressEQ(userAddress)).
+		Only(ctx)
+
+	if err != nil {
+		// Jika error-nya adalah "Not Found" (user baru)
+		if ent.IsNotFound(err) {
+			log.Printf("User baru terdeteksi: %s. Menyimpan ke database...", userAddress)
+
+			// Buat user baru
+			_, createErr := client.User.Create().
+				SetAddress(userAddress).
+				Save(ctx)
+
+			if createErr != nil {
+				log.Printf("Gagal menyimpan user baru %s: %v", userAddress, createErr)
+			} else {
+				log.Println("User baru berhasil disimpan.")
+			}
+
+			// Jika error-nya BUKAN "Not Found" (masalah DB lain)
+		} else {
+			log.Printf("Error saat query user %s: %v", userAddress, err)
+		}
+
+		// Jika tidak ada error (err == nil)
+	} else {
+		log.Printf("User %s sudah ada di database. (ID: %d)", existingUser.Address, existingUser.ID)
+	}
 }
 
 func NFTMomentMinted(ctx context.Context, ev flow.Event, client *ent.Client) {

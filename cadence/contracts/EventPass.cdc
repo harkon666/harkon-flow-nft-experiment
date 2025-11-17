@@ -398,14 +398,6 @@ access(all) contract EventPass: NonFungibleToken {
         self.CollectionPublicPath = /public/EventPassCollection
         self.MinterStoragePath = /storage/EventPassMinter
 
-        // Create a Collection resource and save it to storage
-        let collection <- create Collection()
-        self.account.storage.save(<-collection, to: self.CollectionStoragePath)
-
-        // create a public capability for the collection
-        let collectionCap = self.account.capabilities.storage.issue<&EventPass.Collection>(self.CollectionStoragePath)
-        self.account.capabilities.publish(collectionCap, at: self.CollectionPublicPath)
-
         // Create a Minter resource and save it to storage
         let minter <- create NFTMinter()
         self.account.storage.save(<-minter, to: self.MinterStoragePath)

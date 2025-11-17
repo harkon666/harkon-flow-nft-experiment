@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"backend/ent/eventpass"
 	"backend/ent/nftmoment"
 	"backend/ent/user"
 	"fmt"
@@ -27,9 +28,10 @@ type NFTMoment struct {
 	Thumbnail string `json:"thumbnail,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the NFTMomentQuery when eager-loading is set.
-	Edges        NFTMomentEdges `json:"edges"`
-	user_moments *int
-	selectValues sql.SelectValues
+	Edges             NFTMomentEdges `json:"edges"`
+	event_pass_moment *int
+	user_moments      *int
+	selectValues      sql.SelectValues
 }
 
 // NFTMomentEdges holds the relations/edges for other nodes in the graph.
@@ -38,9 +40,11 @@ type NFTMomentEdges struct {
 	Owner *User `json:"owner,omitempty"`
 	// EquippedAccessories holds the value of the equipped_accessories edge.
 	EquippedAccessories []*NFTAccessory `json:"equipped_accessories,omitempty"`
+	// MintedWithPass holds the value of the minted_with_pass edge.
+	MintedWithPass *EventPass `json:"minted_with_pass,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // OwnerOrErr returns the Owner value or an error if the edge
@@ -63,6 +67,17 @@ func (e NFTMomentEdges) EquippedAccessoriesOrErr() ([]*NFTAccessory, error) {
 	return nil, &NotLoadedError{edge: "equipped_accessories"}
 }
 
+// MintedWithPassOrErr returns the MintedWithPass value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e NFTMomentEdges) MintedWithPassOrErr() (*EventPass, error) {
+	if e.MintedWithPass != nil {
+		return e.MintedWithPass, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: eventpass.Label}
+	}
+	return nil, &NotLoadedError{edge: "minted_with_pass"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*NFTMoment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -72,7 +87,9 @@ func (*NFTMoment) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case nftmoment.FieldName, nftmoment.FieldDescription, nftmoment.FieldThumbnail:
 			values[i] = new(sql.NullString)
-		case nftmoment.ForeignKeys[0]: // user_moments
+		case nftmoment.ForeignKeys[0]: // event_pass_moment
+			values[i] = new(sql.NullInt64)
+		case nftmoment.ForeignKeys[1]: // user_moments
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -121,6 +138,13 @@ func (_m *NFTMoment) assignValues(columns []string, values []any) error {
 			}
 		case nftmoment.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field event_pass_moment", value)
+			} else if value.Valid {
+				_m.event_pass_moment = new(int)
+				*_m.event_pass_moment = int(value.Int64)
+			}
+		case nftmoment.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_moments", value)
 			} else if value.Valid {
 				_m.user_moments = new(int)
@@ -147,6 +171,11 @@ func (_m *NFTMoment) QueryOwner() *UserQuery {
 // QueryEquippedAccessories queries the "equipped_accessories" edge of the NFTMoment entity.
 func (_m *NFTMoment) QueryEquippedAccessories() *NFTAccessoryQuery {
 	return NewNFTMomentClient(_m.config).QueryEquippedAccessories(_m)
+}
+
+// QueryMintedWithPass queries the "minted_with_pass" edge of the NFTMoment entity.
+func (_m *NFTMoment) QueryMintedWithPass() *EventPassQuery {
+	return NewNFTMomentClient(_m.config).QueryMintedWithPass(_m)
 }
 
 // Update returns a builder for updating this NFTMoment.

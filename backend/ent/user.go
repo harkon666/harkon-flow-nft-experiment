@@ -4,6 +4,7 @@ package ent
 
 import (
 	"backend/ent/user"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -18,6 +19,20 @@ type User struct {
 	ID int `json:"id,omitempty"`
 	// Address holds the value of the "address" field.
 	Address string `json:"address,omitempty"`
+	// Nickname holds the value of the "nickname" field.
+	Nickname string `json:"nickname,omitempty"`
+	// Bio holds the value of the "bio" field.
+	Bio string `json:"bio,omitempty"`
+	// Pfp holds the value of the "pfp" field.
+	Pfp string `json:"pfp,omitempty"`
+	// ShortDescription holds the value of the "short_description" field.
+	ShortDescription string `json:"short_description,omitempty"`
+	// BgImage holds the value of the "bg_image" field.
+	BgImage string `json:"bg_image,omitempty"`
+	// HighlightedEventPassIds holds the value of the "highlighted_eventPass_ids" field.
+	HighlightedEventPassIds []uint64 `json:"highlighted_eventPass_ids,omitempty"`
+	// HighlightedMomentID holds the value of the "highlighted_moment_id" field.
+	HighlightedMomentID uint64 `json:"highlighted_moment_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -26,31 +41,53 @@ type User struct {
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
-	// Accessories holds the value of the accessories edge.
-	Accessories []*NFTAccessory `json:"accessories,omitempty"`
+	// EventPasses holds the value of the event_passes edge.
+	EventPasses []*EventPass `json:"event_passes,omitempty"`
+	// HostedEvents holds the value of the hosted_events edge.
+	HostedEvents []*Event `json:"hosted_events,omitempty"`
 	// Moments holds the value of the moments edge.
 	Moments []*NFTMoment `json:"moments,omitempty"`
+	// Accessories holds the value of the accessories edge.
+	Accessories []*NFTAccessory `json:"accessories,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [4]bool
 }
 
-// AccessoriesOrErr returns the Accessories value or an error if the edge
+// EventPassesOrErr returns the EventPasses value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) AccessoriesOrErr() ([]*NFTAccessory, error) {
+func (e UserEdges) EventPassesOrErr() ([]*EventPass, error) {
 	if e.loadedTypes[0] {
-		return e.Accessories, nil
+		return e.EventPasses, nil
 	}
-	return nil, &NotLoadedError{edge: "accessories"}
+	return nil, &NotLoadedError{edge: "event_passes"}
+}
+
+// HostedEventsOrErr returns the HostedEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) HostedEventsOrErr() ([]*Event, error) {
+	if e.loadedTypes[1] {
+		return e.HostedEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "hosted_events"}
 }
 
 // MomentsOrErr returns the Moments value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) MomentsOrErr() ([]*NFTMoment, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.Moments, nil
 	}
 	return nil, &NotLoadedError{edge: "moments"}
+}
+
+// AccessoriesOrErr returns the Accessories value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) AccessoriesOrErr() ([]*NFTAccessory, error) {
+	if e.loadedTypes[3] {
+		return e.Accessories, nil
+	}
+	return nil, &NotLoadedError{edge: "accessories"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -58,9 +95,11 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldID:
+		case user.FieldHighlightedEventPassIds:
+			values[i] = new([]byte)
+		case user.FieldID, user.FieldHighlightedMomentID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldAddress:
+		case user.FieldAddress, user.FieldNickname, user.FieldBio, user.FieldPfp, user.FieldShortDescription, user.FieldBgImage:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -89,6 +128,50 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Address = value.String
 			}
+		case user.FieldNickname:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field nickname", values[i])
+			} else if value.Valid {
+				_m.Nickname = value.String
+			}
+		case user.FieldBio:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field bio", values[i])
+			} else if value.Valid {
+				_m.Bio = value.String
+			}
+		case user.FieldPfp:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field pfp", values[i])
+			} else if value.Valid {
+				_m.Pfp = value.String
+			}
+		case user.FieldShortDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field short_description", values[i])
+			} else if value.Valid {
+				_m.ShortDescription = value.String
+			}
+		case user.FieldBgImage:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field bg_image", values[i])
+			} else if value.Valid {
+				_m.BgImage = value.String
+			}
+		case user.FieldHighlightedEventPassIds:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field highlighted_eventPass_ids", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.HighlightedEventPassIds); err != nil {
+					return fmt.Errorf("unmarshal field highlighted_eventPass_ids: %w", err)
+				}
+			}
+		case user.FieldHighlightedMomentID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field highlighted_moment_id", values[i])
+			} else if value.Valid {
+				_m.HighlightedMomentID = uint64(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -102,14 +185,24 @@ func (_m *User) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryAccessories queries the "accessories" edge of the User entity.
-func (_m *User) QueryAccessories() *NFTAccessoryQuery {
-	return NewUserClient(_m.config).QueryAccessories(_m)
+// QueryEventPasses queries the "event_passes" edge of the User entity.
+func (_m *User) QueryEventPasses() *EventPassQuery {
+	return NewUserClient(_m.config).QueryEventPasses(_m)
+}
+
+// QueryHostedEvents queries the "hosted_events" edge of the User entity.
+func (_m *User) QueryHostedEvents() *EventQuery {
+	return NewUserClient(_m.config).QueryHostedEvents(_m)
 }
 
 // QueryMoments queries the "moments" edge of the User entity.
 func (_m *User) QueryMoments() *NFTMomentQuery {
 	return NewUserClient(_m.config).QueryMoments(_m)
+}
+
+// QueryAccessories queries the "accessories" edge of the User entity.
+func (_m *User) QueryAccessories() *NFTAccessoryQuery {
+	return NewUserClient(_m.config).QueryAccessories(_m)
 }
 
 // Update returns a builder for updating this User.
@@ -137,6 +230,27 @@ func (_m *User) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("address=")
 	builder.WriteString(_m.Address)
+	builder.WriteString(", ")
+	builder.WriteString("nickname=")
+	builder.WriteString(_m.Nickname)
+	builder.WriteString(", ")
+	builder.WriteString("bio=")
+	builder.WriteString(_m.Bio)
+	builder.WriteString(", ")
+	builder.WriteString("pfp=")
+	builder.WriteString(_m.Pfp)
+	builder.WriteString(", ")
+	builder.WriteString("short_description=")
+	builder.WriteString(_m.ShortDescription)
+	builder.WriteString(", ")
+	builder.WriteString("bg_image=")
+	builder.WriteString(_m.BgImage)
+	builder.WriteString(", ")
+	builder.WriteString("highlighted_eventPass_ids=")
+	builder.WriteString(fmt.Sprintf("%v", _m.HighlightedEventPassIds))
+	builder.WriteString(", ")
+	builder.WriteString("highlighted_moment_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.HighlightedMomentID))
 	builder.WriteByte(')')
 	return builder.String()
 }

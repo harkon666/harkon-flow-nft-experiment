@@ -19,7 +19,7 @@ func (NFTAccessory) Fields() []ent.Field {
 		field.String("name"),
 		field.String("description"),
 		field.String("thumbnail"),
-		field.String("equipmentType"),
+		field.String("equipment_type"),
 	}
 }
 

@@ -14,19 +14,44 @@ const (
 	FieldID = "id"
 	// FieldAddress holds the string denoting the address field in the database.
 	FieldAddress = "address"
-	// EdgeAccessories holds the string denoting the accessories edge name in mutations.
-	EdgeAccessories = "accessories"
+	// FieldNickname holds the string denoting the nickname field in the database.
+	FieldNickname = "nickname"
+	// FieldBio holds the string denoting the bio field in the database.
+	FieldBio = "bio"
+	// FieldPfp holds the string denoting the pfp field in the database.
+	FieldPfp = "pfp"
+	// FieldShortDescription holds the string denoting the short_description field in the database.
+	FieldShortDescription = "short_description"
+	// FieldBgImage holds the string denoting the bg_image field in the database.
+	FieldBgImage = "bg_image"
+	// FieldHighlightedEventPassIds holds the string denoting the highlighted_eventpass_ids field in the database.
+	FieldHighlightedEventPassIds = "highlighted_event_pass_ids"
+	// FieldHighlightedMomentID holds the string denoting the highlighted_moment_id field in the database.
+	FieldHighlightedMomentID = "highlighted_moment_id"
+	// EdgeEventPasses holds the string denoting the event_passes edge name in mutations.
+	EdgeEventPasses = "event_passes"
+	// EdgeHostedEvents holds the string denoting the hosted_events edge name in mutations.
+	EdgeHostedEvents = "hosted_events"
 	// EdgeMoments holds the string denoting the moments edge name in mutations.
 	EdgeMoments = "moments"
+	// EdgeAccessories holds the string denoting the accessories edge name in mutations.
+	EdgeAccessories = "accessories"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// AccessoriesTable is the table that holds the accessories relation/edge.
-	AccessoriesTable = "nft_accessories"
-	// AccessoriesInverseTable is the table name for the NFTAccessory entity.
-	// It exists in this package in order to avoid circular dependency with the "nftaccessory" package.
-	AccessoriesInverseTable = "nft_accessories"
-	// AccessoriesColumn is the table column denoting the accessories relation/edge.
-	AccessoriesColumn = "user_accessories"
+	// EventPassesTable is the table that holds the event_passes relation/edge.
+	EventPassesTable = "event_passes"
+	// EventPassesInverseTable is the table name for the EventPass entity.
+	// It exists in this package in order to avoid circular dependency with the "eventpass" package.
+	EventPassesInverseTable = "event_passes"
+	// EventPassesColumn is the table column denoting the event_passes relation/edge.
+	EventPassesColumn = "user_event_passes"
+	// HostedEventsTable is the table that holds the hosted_events relation/edge.
+	HostedEventsTable = "events"
+	// HostedEventsInverseTable is the table name for the Event entity.
+	// It exists in this package in order to avoid circular dependency with the "event" package.
+	HostedEventsInverseTable = "events"
+	// HostedEventsColumn is the table column denoting the hosted_events relation/edge.
+	HostedEventsColumn = "user_hosted_events"
 	// MomentsTable is the table that holds the moments relation/edge.
 	MomentsTable = "nft_moments"
 	// MomentsInverseTable is the table name for the NFTMoment entity.
@@ -34,12 +59,26 @@ const (
 	MomentsInverseTable = "nft_moments"
 	// MomentsColumn is the table column denoting the moments relation/edge.
 	MomentsColumn = "user_moments"
+	// AccessoriesTable is the table that holds the accessories relation/edge.
+	AccessoriesTable = "nft_accessories"
+	// AccessoriesInverseTable is the table name for the NFTAccessory entity.
+	// It exists in this package in order to avoid circular dependency with the "nftaccessory" package.
+	AccessoriesInverseTable = "nft_accessories"
+	// AccessoriesColumn is the table column denoting the accessories relation/edge.
+	AccessoriesColumn = "user_accessories"
 )
 
 // Columns holds all SQL columns for user fields.
 var Columns = []string{
 	FieldID,
 	FieldAddress,
+	FieldNickname,
+	FieldBio,
+	FieldPfp,
+	FieldShortDescription,
+	FieldBgImage,
+	FieldHighlightedEventPassIds,
+	FieldHighlightedMomentID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -65,17 +104,61 @@ func ByAddress(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAddress, opts...).ToFunc()
 }
 
-// ByAccessoriesCount orders the results by accessories count.
-func ByAccessoriesCount(opts ...sql.OrderTermOption) OrderOption {
+// ByNickname orders the results by the nickname field.
+func ByNickname(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNickname, opts...).ToFunc()
+}
+
+// ByBio orders the results by the bio field.
+func ByBio(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBio, opts...).ToFunc()
+}
+
+// ByPfp orders the results by the pfp field.
+func ByPfp(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPfp, opts...).ToFunc()
+}
+
+// ByShortDescription orders the results by the short_description field.
+func ByShortDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShortDescription, opts...).ToFunc()
+}
+
+// ByBgImage orders the results by the bg_image field.
+func ByBgImage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBgImage, opts...).ToFunc()
+}
+
+// ByHighlightedMomentID orders the results by the highlighted_moment_id field.
+func ByHighlightedMomentID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHighlightedMomentID, opts...).ToFunc()
+}
+
+// ByEventPassesCount orders the results by event_passes count.
+func ByEventPassesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newAccessoriesStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newEventPassesStep(), opts...)
 	}
 }
 
-// ByAccessories orders the results by accessories terms.
-func ByAccessories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByEventPasses orders the results by event_passes terms.
+func ByEventPasses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newAccessoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newEventPassesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByHostedEventsCount orders the results by hosted_events count.
+func ByHostedEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newHostedEventsStep(), opts...)
+	}
+}
+
+// ByHostedEvents orders the results by hosted_events terms.
+func ByHostedEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newHostedEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -92,11 +175,32 @@ func ByMoments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newMomentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newAccessoriesStep() *sqlgraph.Step {
+
+// ByAccessoriesCount orders the results by accessories count.
+func ByAccessoriesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAccessoriesStep(), opts...)
+	}
+}
+
+// ByAccessories orders the results by accessories terms.
+func ByAccessories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAccessoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newEventPassesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(AccessoriesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, AccessoriesTable, AccessoriesColumn),
+		sqlgraph.To(EventPassesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, EventPassesTable, EventPassesColumn),
+	)
+}
+func newHostedEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(HostedEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, HostedEventsTable, HostedEventsColumn),
 	)
 }
 func newMomentsStep() *sqlgraph.Step {
@@ -104,5 +208,12 @@ func newMomentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MomentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, MomentsTable, MomentsColumn),
+	)
+}
+func newAccessoriesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AccessoriesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AccessoriesTable, AccessoriesColumn),
 	)
 }

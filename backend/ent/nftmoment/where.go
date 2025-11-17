@@ -355,6 +355,29 @@ func HasEquippedAccessoriesWith(preds ...predicate.NFTAccessory) predicate.NFTMo
 	})
 }
 
+// HasMintedWithPass applies the HasEdge predicate on the "minted_with_pass" edge.
+func HasMintedWithPass() predicate.NFTMoment {
+	return predicate.NFTMoment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, MintedWithPassTable, MintedWithPassColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMintedWithPassWith applies the HasEdge predicate on the "minted_with_pass" edge with a given conditions (other predicates).
+func HasMintedWithPassWith(preds ...predicate.EventPass) predicate.NFTMoment {
+	return predicate.NFTMoment(func(s *sql.Selector) {
+		step := newMintedWithPassStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.NFTMoment) predicate.NFTMoment {
 	return predicate.NFTMoment(sql.AndPredicates(predicates...))

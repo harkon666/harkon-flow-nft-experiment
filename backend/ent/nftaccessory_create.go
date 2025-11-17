@@ -45,7 +45,7 @@ func (_c *NFTAccessoryCreate) SetThumbnail(v string) *NFTAccessoryCreate {
 	return _c
 }
 
-// SetEquipmentType sets the "equipmentType" field.
+// SetEquipmentType sets the "equipment_type" field.
 func (_c *NFTAccessoryCreate) SetEquipmentType(v string) *NFTAccessoryCreate {
 	_c.mutation.SetEquipmentType(v)
 	return _c
@@ -128,7 +128,7 @@ func (_c *NFTAccessoryCreate) check() error {
 		return &ValidationError{Name: "thumbnail", err: errors.New(`ent: missing required field "NFTAccessory.thumbnail"`)}
 	}
 	if _, ok := _c.mutation.EquipmentType(); !ok {
-		return &ValidationError{Name: "equipmentType", err: errors.New(`ent: missing required field "NFTAccessory.equipmentType"`)}
+		return &ValidationError{Name: "equipment_type", err: errors.New(`ent: missing required field "NFTAccessory.equipment_type"`)}
 	}
 	if len(_c.mutation.OwnerIDs()) == 0 {
 		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required edge "NFTAccessory.owner"`)}

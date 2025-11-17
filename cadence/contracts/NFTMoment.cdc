@@ -448,12 +448,6 @@ access(all) contract NFTMoment: NonFungibleToken {
         self.CollectionPublicPath = /public/NFTMomentReceiver
         self.MinterStoragePath = /storage/NFTMomentMinter
 
-        let collection <- create Collection()
-        self.account.storage.save(<-collection, to: self.CollectionStoragePath)
-
-        let collectionCap = self.account.capabilities.storage.issue<&NFTMoment.Collection>(self.CollectionStoragePath)
-        self.account.capabilities.publish(collectionCap, at: self.CollectionPublicPath)
-
         let minter <- create NFTMinter()
         self.account.storage.save(<-minter, to: self.MinterStoragePath)
     }

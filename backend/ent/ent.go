@@ -3,6 +3,8 @@
 package ent
 
 import (
+	"backend/ent/event"
+	"backend/ent/eventpass"
 	"backend/ent/nftaccessory"
 	"backend/ent/nftmoment"
 	"backend/ent/user"
@@ -75,6 +77,8 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			event.Table:        event.ValidColumn,
+			eventpass.Table:    eventpass.ValidColumn,
 			nftaccessory.Table: nftaccessory.ValidColumn,
 			nftmoment.Table:    nftmoment.ValidColumn,
 			user.Table:         user.ValidColumn,

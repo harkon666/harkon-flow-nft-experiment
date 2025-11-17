@@ -166,9 +166,8 @@ access(all) contract UserProfile {
         self.ProfileStoragePath = /storage/MomentumUserProfile
         self.ProfilePublicPath = /public/MomentumUserProfile
         self.VerifierStoragePath = /storage/MomentUserVerifier
-        let profile <- create Profile()
+
         let verifier <- create Verifier()
         self.account.storage.save(<-verifier, to: self.VerifierStoragePath)
-        self.account.storage.save(<-profile, to: self.ProfileStoragePath)
     }
 }

@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"backend/ent/eventpass"
 	"backend/ent/nftaccessory"
 	"backend/ent/nftmoment"
 	"backend/ent/predicate"
@@ -118,6 +119,25 @@ func (_u *NFTMomentUpdate) AddEquippedAccessories(v ...*NFTAccessory) *NFTMoment
 	return _u.AddEquippedAccessoryIDs(ids...)
 }
 
+// SetMintedWithPassID sets the "minted_with_pass" edge to the EventPass entity by ID.
+func (_u *NFTMomentUpdate) SetMintedWithPassID(id int) *NFTMomentUpdate {
+	_u.mutation.SetMintedWithPassID(id)
+	return _u
+}
+
+// SetNillableMintedWithPassID sets the "minted_with_pass" edge to the EventPass entity by ID if the given value is not nil.
+func (_u *NFTMomentUpdate) SetNillableMintedWithPassID(id *int) *NFTMomentUpdate {
+	if id != nil {
+		_u = _u.SetMintedWithPassID(*id)
+	}
+	return _u
+}
+
+// SetMintedWithPass sets the "minted_with_pass" edge to the EventPass entity.
+func (_u *NFTMomentUpdate) SetMintedWithPass(v *EventPass) *NFTMomentUpdate {
+	return _u.SetMintedWithPassID(v.ID)
+}
+
 // Mutation returns the NFTMomentMutation object of the builder.
 func (_u *NFTMomentUpdate) Mutation() *NFTMomentMutation {
 	return _u.mutation
@@ -148,6 +168,12 @@ func (_u *NFTMomentUpdate) RemoveEquippedAccessories(v ...*NFTAccessory) *NFTMom
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveEquippedAccessoryIDs(ids...)
+}
+
+// ClearMintedWithPass clears the "minted_with_pass" edge to the EventPass entity.
+func (_u *NFTMomentUpdate) ClearMintedWithPass() *NFTMomentUpdate {
+	_u.mutation.ClearMintedWithPass()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -286,6 +312,35 @@ func (_u *NFTMomentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.MintedWithPassCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   nftmoment.MintedWithPassTable,
+			Columns: []string{nftmoment.MintedWithPassColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(eventpass.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MintedWithPassIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   nftmoment.MintedWithPassTable,
+			Columns: []string{nftmoment.MintedWithPassColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(eventpass.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{nftmoment.Label}
@@ -395,6 +450,25 @@ func (_u *NFTMomentUpdateOne) AddEquippedAccessories(v ...*NFTAccessory) *NFTMom
 	return _u.AddEquippedAccessoryIDs(ids...)
 }
 
+// SetMintedWithPassID sets the "minted_with_pass" edge to the EventPass entity by ID.
+func (_u *NFTMomentUpdateOne) SetMintedWithPassID(id int) *NFTMomentUpdateOne {
+	_u.mutation.SetMintedWithPassID(id)
+	return _u
+}
+
+// SetNillableMintedWithPassID sets the "minted_with_pass" edge to the EventPass entity by ID if the given value is not nil.
+func (_u *NFTMomentUpdateOne) SetNillableMintedWithPassID(id *int) *NFTMomentUpdateOne {
+	if id != nil {
+		_u = _u.SetMintedWithPassID(*id)
+	}
+	return _u
+}
+
+// SetMintedWithPass sets the "minted_with_pass" edge to the EventPass entity.
+func (_u *NFTMomentUpdateOne) SetMintedWithPass(v *EventPass) *NFTMomentUpdateOne {
+	return _u.SetMintedWithPassID(v.ID)
+}
+
 // Mutation returns the NFTMomentMutation object of the builder.
 func (_u *NFTMomentUpdateOne) Mutation() *NFTMomentMutation {
 	return _u.mutation
@@ -425,6 +499,12 @@ func (_u *NFTMomentUpdateOne) RemoveEquippedAccessories(v ...*NFTAccessory) *NFT
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveEquippedAccessoryIDs(ids...)
+}
+
+// ClearMintedWithPass clears the "minted_with_pass" edge to the EventPass entity.
+func (_u *NFTMomentUpdateOne) ClearMintedWithPass() *NFTMomentUpdateOne {
+	_u.mutation.ClearMintedWithPass()
+	return _u
 }
 
 // Where appends a list predicates to the NFTMomentUpdate builder.
@@ -586,6 +666,35 @@ func (_u *NFTMomentUpdateOne) sqlSave(ctx context.Context) (_node *NFTMoment, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(nftaccessory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.MintedWithPassCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   nftmoment.MintedWithPassTable,
+			Columns: []string{nftmoment.MintedWithPassColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(eventpass.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MintedWithPassIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   nftmoment.MintedWithPassTable,
+			Columns: []string{nftmoment.MintedWithPassColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(eventpass.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

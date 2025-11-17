@@ -3,6 +3,8 @@
 package ent
 
 import (
+	"backend/ent/event"
+	"backend/ent/eventpass"
 	"backend/ent/nftaccessory"
 	"backend/ent/nftmoment"
 	"backend/ent/predicate"
@@ -21,12 +23,14 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx             *QueryContext
-	order           []user.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.User
-	withAccessories *NFTAccessoryQuery
-	withMoments     *NFTMomentQuery
+	ctx              *QueryContext
+	order            []user.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.User
+	withEventPasses  *EventPassQuery
+	withHostedEvents *EventQuery
+	withMoments      *NFTMomentQuery
+	withAccessories  *NFTAccessoryQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -63,9 +67,9 @@ func (_q *UserQuery) Order(o ...user.OrderOption) *UserQuery {
 	return _q
 }
 
-// QueryAccessories chains the current query on the "accessories" edge.
-func (_q *UserQuery) QueryAccessories() *NFTAccessoryQuery {
-	query := (&NFTAccessoryClient{config: _q.config}).Query()
+// QueryEventPasses chains the current query on the "event_passes" edge.
+func (_q *UserQuery) QueryEventPasses() *EventPassQuery {
+	query := (&EventPassClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -76,8 +80,30 @@ func (_q *UserQuery) QueryAccessories() *NFTAccessoryQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(nftaccessory.Table, nftaccessory.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.AccessoriesTable, user.AccessoriesColumn),
+			sqlgraph.To(eventpass.Table, eventpass.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.EventPassesTable, user.EventPassesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryHostedEvents chains the current query on the "hosted_events" edge.
+func (_q *UserQuery) QueryHostedEvents() *EventQuery {
+	query := (&EventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(event.Table, event.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.HostedEventsTable, user.HostedEventsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -100,6 +126,28 @@ func (_q *UserQuery) QueryMoments() *NFTMomentQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(nftmoment.Table, nftmoment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.MomentsTable, user.MomentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAccessories chains the current query on the "accessories" edge.
+func (_q *UserQuery) QueryAccessories() *NFTAccessoryQuery {
+	query := (&NFTAccessoryClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(nftaccessory.Table, nftaccessory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.AccessoriesTable, user.AccessoriesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -294,27 +342,40 @@ func (_q *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:          _q.config,
-		ctx:             _q.ctx.Clone(),
-		order:           append([]user.OrderOption{}, _q.order...),
-		inters:          append([]Interceptor{}, _q.inters...),
-		predicates:      append([]predicate.User{}, _q.predicates...),
-		withAccessories: _q.withAccessories.Clone(),
-		withMoments:     _q.withMoments.Clone(),
+		config:           _q.config,
+		ctx:              _q.ctx.Clone(),
+		order:            append([]user.OrderOption{}, _q.order...),
+		inters:           append([]Interceptor{}, _q.inters...),
+		predicates:       append([]predicate.User{}, _q.predicates...),
+		withEventPasses:  _q.withEventPasses.Clone(),
+		withHostedEvents: _q.withHostedEvents.Clone(),
+		withMoments:      _q.withMoments.Clone(),
+		withAccessories:  _q.withAccessories.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
 }
 
-// WithAccessories tells the query-builder to eager-load the nodes that are connected to
-// the "accessories" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *UserQuery) WithAccessories(opts ...func(*NFTAccessoryQuery)) *UserQuery {
-	query := (&NFTAccessoryClient{config: _q.config}).Query()
+// WithEventPasses tells the query-builder to eager-load the nodes that are connected to
+// the "event_passes" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithEventPasses(opts ...func(*EventPassQuery)) *UserQuery {
+	query := (&EventPassClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withAccessories = query
+	_q.withEventPasses = query
+	return _q
+}
+
+// WithHostedEvents tells the query-builder to eager-load the nodes that are connected to
+// the "hosted_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithHostedEvents(opts ...func(*EventQuery)) *UserQuery {
+	query := (&EventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withHostedEvents = query
 	return _q
 }
 
@@ -326,6 +387,17 @@ func (_q *UserQuery) WithMoments(opts ...func(*NFTMomentQuery)) *UserQuery {
 		opt(query)
 	}
 	_q.withMoments = query
+	return _q
+}
+
+// WithAccessories tells the query-builder to eager-load the nodes that are connected to
+// the "accessories" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithAccessories(opts ...func(*NFTAccessoryQuery)) *UserQuery {
+	query := (&NFTAccessoryClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAccessories = query
 	return _q
 }
 
@@ -407,9 +479,11 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
-			_q.withAccessories != nil,
+		loadedTypes = [4]bool{
+			_q.withEventPasses != nil,
+			_q.withHostedEvents != nil,
 			_q.withMoments != nil,
+			_q.withAccessories != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -430,10 +504,17 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withAccessories; query != nil {
-		if err := _q.loadAccessories(ctx, query, nodes,
-			func(n *User) { n.Edges.Accessories = []*NFTAccessory{} },
-			func(n *User, e *NFTAccessory) { n.Edges.Accessories = append(n.Edges.Accessories, e) }); err != nil {
+	if query := _q.withEventPasses; query != nil {
+		if err := _q.loadEventPasses(ctx, query, nodes,
+			func(n *User) { n.Edges.EventPasses = []*EventPass{} },
+			func(n *User, e *EventPass) { n.Edges.EventPasses = append(n.Edges.EventPasses, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withHostedEvents; query != nil {
+		if err := _q.loadHostedEvents(ctx, query, nodes,
+			func(n *User) { n.Edges.HostedEvents = []*Event{} },
+			func(n *User, e *Event) { n.Edges.HostedEvents = append(n.Edges.HostedEvents, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -444,10 +525,17 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
+	if query := _q.withAccessories; query != nil {
+		if err := _q.loadAccessories(ctx, query, nodes,
+			func(n *User) { n.Edges.Accessories = []*NFTAccessory{} },
+			func(n *User, e *NFTAccessory) { n.Edges.Accessories = append(n.Edges.Accessories, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
-func (_q *UserQuery) loadAccessories(ctx context.Context, query *NFTAccessoryQuery, nodes []*User, init func(*User), assign func(*User, *NFTAccessory)) error {
+func (_q *UserQuery) loadEventPasses(ctx context.Context, query *EventPassQuery, nodes []*User, init func(*User), assign func(*User, *EventPass)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*User)
 	for i := range nodes {
@@ -458,21 +546,52 @@ func (_q *UserQuery) loadAccessories(ctx context.Context, query *NFTAccessoryQue
 		}
 	}
 	query.withFKs = true
-	query.Where(predicate.NFTAccessory(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.AccessoriesColumn), fks...))
+	query.Where(predicate.EventPass(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.EventPassesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.user_accessories
+		fk := n.user_event_passes
 		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_accessories" is nil for node %v`, n.ID)
+			return fmt.Errorf(`foreign-key "user_event_passes" is nil for node %v`, n.ID)
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "user_accessories" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_event_passes" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadHostedEvents(ctx context.Context, query *EventQuery, nodes []*User, init func(*User), assign func(*User, *Event)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Event(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.HostedEventsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_hosted_events
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_hosted_events" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_hosted_events" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -504,6 +623,37 @@ func (_q *UserQuery) loadMoments(ctx context.Context, query *NFTMomentQuery, nod
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_moments" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadAccessories(ctx context.Context, query *NFTAccessoryQuery, nodes []*User, init func(*User), assign func(*User, *NFTAccessory)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.NFTAccessory(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.AccessoriesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_accessories
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_accessories" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_accessories" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

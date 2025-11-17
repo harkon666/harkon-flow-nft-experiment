@@ -23,10 +23,11 @@ const (
 )
 
 var (
-	NFTMomentMinted           = "A.f8d6e0586b0a20c7.NFTMoment.Minted"
-	NFTAccessoryMinted        = "A.f8d6e0586b0a20c7.AccessoryPack.AccessoryDistributed"
-	NFTMomentEquipAccessory   = "A.f8d6e0586b0a20c7.NFTMoment.AccessoryEquipped"
-	NFTMomentUnequipAccessory = "A.f8d6e0586b0a20c7.NFTMoment.AccessoryUnequipped"
+	FlowCapabilityControllerIssued = "flow.StorageCapabilityControllerIssued"
+	NFTMomentMinted                = "A.f8d6e0586b0a20c7.NFTMoment.Minted"
+	NFTAccessoryMinted             = "A.f8d6e0586b0a20c7.AccessoryPack.AccessoryDistributed"
+	NFTMomentEquipAccessory        = "A.f8d6e0586b0a20c7.NFTMoment.AccessoryEquipped"
+	NFTMomentUnequipAccessory      = "A.f8d6e0586b0a20c7.NFTMoment.AccessoryUnequipped"
 )
 
 func main() {
@@ -62,7 +63,10 @@ func main() {
 		ctx,
 		0,
 		flow.EventFilter{
-			EventTypes: []string{NFTMomentMinted, NFTAccessoryMinted, NFTMomentEquipAccessory, NFTMomentUnequipAccessory},
+			EventTypes: []string{
+				NFTMomentMinted, NFTAccessoryMinted, NFTMomentEquipAccessory, NFTMomentUnequipAccessory,
+				FlowCapabilityControllerIssued,
+			},
 		},
 	)
 	if initErr != nil {
@@ -83,6 +87,8 @@ func main() {
 				fmt.Println("Type:", ev.Type)
 
 				switch ev.Type {
+				case FlowCapabilityControllerIssued:
+					utils.HandleCapabilityIssued(ctx, ev, client)
 				case NFTMomentMinted:
 					utils.NFTMomentMinted(ctx, ev, client)
 				case NFTAccessoryMinted:

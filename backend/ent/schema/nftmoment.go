@@ -31,6 +31,10 @@ func (NFTMoment) Edges() []ent.Edge {
 			Unique().       // Momen hanya punya satu owner
 			Required(),     // Momen wajib punya owner
 
-			edge.To("equipped_accessories", NFTAccessory.Type),
+		edge.To("equipped_accessories", NFTAccessory.Type),
+
+		edge.From("minted_with_pass", EventPass.Type).
+			Ref("moment").
+			Unique(),
 	}
 }

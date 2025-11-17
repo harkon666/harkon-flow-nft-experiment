@@ -1,9 +1,11 @@
 package schema
 
 import (
+	"time"
+
 	"entgo.io/ent"
-	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/edge"
+	"entgo.io/ent/schema/field"
 )
 
 // User holds the schema definition for the User entity.
@@ -11,11 +13,22 @@ type User struct {
 	ent.Schema
 }
 
-// Fields of the User.
+type HighlightedEventPassIds struct {
+	Name    string    `json:"name"`
+	Created time.Time `json:"created"`
+}
+
 func (User) Fields() []ent.Field {
-	    return []ent.Field{
-        field.String("address").Unique(),
-    }
+	return []ent.Field{
+		field.String("address").Unique(),
+		field.String("nickname").Optional(),
+		field.String("bio").Optional(),
+		field.String("pfp").Optional(),
+		field.String("short_description").Optional(),
+		field.String("bg_image").Optional(),
+		field.JSON("highlighted_eventPass_ids", []uint64{}).Optional(),
+		field.Uint64("highlighted_moment_id").Optional(),
+	}
 }
 
 // Edges of the User.
@@ -23,9 +36,12 @@ func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		// Mendefinisikan relasi "one-to-many" (satu-ke-banyak)
 		// Satu User bisa memiliki banyak NFTAccessories
-		edge.To("accessories", NFTAccessory.Type),
+		edge.To("event_passes", EventPass.Type),
+		// Satu User bisa menghosting banyak Event
+		edge.To("hosted_events", Event.Type),
 
-		// Satu User juga bisa memiliki banyak NFTMoments
+		// --- Relasi Lama Anda (dari NFTMoment & NFTAccessory) ---
 		edge.To("moments", NFTMoment.Type),
+		edge.To("accessories", NFTAccessory.Type),
 	}
 }

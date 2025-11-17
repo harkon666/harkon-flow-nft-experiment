@@ -24,6 +24,8 @@ const (
 	EdgeOwner = "owner"
 	// EdgeEquippedAccessories holds the string denoting the equipped_accessories edge name in mutations.
 	EdgeEquippedAccessories = "equipped_accessories"
+	// EdgeMintedWithPass holds the string denoting the minted_with_pass edge name in mutations.
+	EdgeMintedWithPass = "minted_with_pass"
 	// Table holds the table name of the nftmoment in the database.
 	Table = "nft_moments"
 	// OwnerTable is the table that holds the owner relation/edge.
@@ -40,6 +42,13 @@ const (
 	EquippedAccessoriesInverseTable = "nft_accessories"
 	// EquippedAccessoriesColumn is the table column denoting the equipped_accessories relation/edge.
 	EquippedAccessoriesColumn = "nft_moment_equipped_accessories"
+	// MintedWithPassTable is the table that holds the minted_with_pass relation/edge.
+	MintedWithPassTable = "nft_moments"
+	// MintedWithPassInverseTable is the table name for the EventPass entity.
+	// It exists in this package in order to avoid circular dependency with the "eventpass" package.
+	MintedWithPassInverseTable = "event_passes"
+	// MintedWithPassColumn is the table column denoting the minted_with_pass relation/edge.
+	MintedWithPassColumn = "event_pass_moment"
 )
 
 // Columns holds all SQL columns for nftmoment fields.
@@ -54,6 +63,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "nft_moments"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"event_pass_moment",
 	"user_moments",
 }
 
@@ -120,6 +130,13 @@ func ByEquippedAccessories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpti
 		sqlgraph.OrderByNeighborTerms(s, newEquippedAccessoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByMintedWithPassField orders the results by minted_with_pass field.
+func ByMintedWithPassField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMintedWithPassStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newOwnerStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -132,5 +149,12 @@ func newEquippedAccessoriesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(EquippedAccessoriesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, EquippedAccessoriesTable, EquippedAccessoriesColumn),
+	)
+}
+func newMintedWithPassStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MintedWithPassInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, true, MintedWithPassTable, MintedWithPassColumn),
 	)
 }

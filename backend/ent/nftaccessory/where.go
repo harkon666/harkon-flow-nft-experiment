@@ -74,7 +74,7 @@ func Thumbnail(v string) predicate.NFTAccessory {
 	return predicate.NFTAccessory(sql.FieldEQ(FieldThumbnail, v))
 }
 
-// EquipmentType applies equality check predicate on the "equipmentType" field. It's identical to EquipmentTypeEQ.
+// EquipmentType applies equality check predicate on the "equipment_type" field. It's identical to EquipmentTypeEQ.
 func EquipmentType(v string) predicate.NFTAccessory {
 	return predicate.NFTAccessory(sql.FieldEQ(FieldEquipmentType, v))
 }
@@ -314,67 +314,67 @@ func ThumbnailContainsFold(v string) predicate.NFTAccessory {
 	return predicate.NFTAccessory(sql.FieldContainsFold(FieldThumbnail, v))
 }
 
-// EquipmentTypeEQ applies the EQ predicate on the "equipmentType" field.
+// EquipmentTypeEQ applies the EQ predicate on the "equipment_type" field.
 func EquipmentTypeEQ(v string) predicate.NFTAccessory {
 	return predicate.NFTAccessory(sql.FieldEQ(FieldEquipmentType, v))
 }
 
-// EquipmentTypeNEQ applies the NEQ predicate on the "equipmentType" field.
+// EquipmentTypeNEQ applies the NEQ predicate on the "equipment_type" field.
 func EquipmentTypeNEQ(v string) predicate.NFTAccessory {
 	return predicate.NFTAccessory(sql.FieldNEQ(FieldEquipmentType, v))
 }
 
-// EquipmentTypeIn applies the In predicate on the "equipmentType" field.
+// EquipmentTypeIn applies the In predicate on the "equipment_type" field.
 func EquipmentTypeIn(vs ...string) predicate.NFTAccessory {
 	return predicate.NFTAccessory(sql.FieldIn(FieldEquipmentType, vs...))
 }
 
-// EquipmentTypeNotIn applies the NotIn predicate on the "equipmentType" field.
+// EquipmentTypeNotIn applies the NotIn predicate on the "equipment_type" field.
 func EquipmentTypeNotIn(vs ...string) predicate.NFTAccessory {
 	return predicate.NFTAccessory(sql.FieldNotIn(FieldEquipmentType, vs...))
 }
 
-// EquipmentTypeGT applies the GT predicate on the "equipmentType" field.
+// EquipmentTypeGT applies the GT predicate on the "equipment_type" field.
 func EquipmentTypeGT(v string) predicate.NFTAccessory {
 	return predicate.NFTAccessory(sql.FieldGT(FieldEquipmentType, v))
 }
 
-// EquipmentTypeGTE applies the GTE predicate on the "equipmentType" field.
+// EquipmentTypeGTE applies the GTE predicate on the "equipment_type" field.
 func EquipmentTypeGTE(v string) predicate.NFTAccessory {
 	return predicate.NFTAccessory(sql.FieldGTE(FieldEquipmentType, v))
 }
 
-// EquipmentTypeLT applies the LT predicate on the "equipmentType" field.
+// EquipmentTypeLT applies the LT predicate on the "equipment_type" field.
 func EquipmentTypeLT(v string) predicate.NFTAccessory {
 	return predicate.NFTAccessory(sql.FieldLT(FieldEquipmentType, v))
 }
 
-// EquipmentTypeLTE applies the LTE predicate on the "equipmentType" field.
+// EquipmentTypeLTE applies the LTE predicate on the "equipment_type" field.
 func EquipmentTypeLTE(v string) predicate.NFTAccessory {
 	return predicate.NFTAccessory(sql.FieldLTE(FieldEquipmentType, v))
 }
 
-// EquipmentTypeContains applies the Contains predicate on the "equipmentType" field.
+// EquipmentTypeContains applies the Contains predicate on the "equipment_type" field.
 func EquipmentTypeContains(v string) predicate.NFTAccessory {
 	return predicate.NFTAccessory(sql.FieldContains(FieldEquipmentType, v))
 }
 
-// EquipmentTypeHasPrefix applies the HasPrefix predicate on the "equipmentType" field.
+// EquipmentTypeHasPrefix applies the HasPrefix predicate on the "equipment_type" field.
 func EquipmentTypeHasPrefix(v string) predicate.NFTAccessory {
 	return predicate.NFTAccessory(sql.FieldHasPrefix(FieldEquipmentType, v))
 }
 
-// EquipmentTypeHasSuffix applies the HasSuffix predicate on the "equipmentType" field.
+// EquipmentTypeHasSuffix applies the HasSuffix predicate on the "equipment_type" field.
 func EquipmentTypeHasSuffix(v string) predicate.NFTAccessory {
 	return predicate.NFTAccessory(sql.FieldHasSuffix(FieldEquipmentType, v))
 }
 
-// EquipmentTypeEqualFold applies the EqualFold predicate on the "equipmentType" field.
+// EquipmentTypeEqualFold applies the EqualFold predicate on the "equipment_type" field.
 func EquipmentTypeEqualFold(v string) predicate.NFTAccessory {
 	return predicate.NFTAccessory(sql.FieldEqualFold(FieldEquipmentType, v))
 }
 
-// EquipmentTypeContainsFold applies the ContainsFold predicate on the "equipmentType" field.
+// EquipmentTypeContainsFold applies the ContainsFold predicate on the "equipment_type" field.
 func EquipmentTypeContainsFold(v string) predicate.NFTAccessory {
 	return predicate.NFTAccessory(sql.FieldContainsFold(FieldEquipmentType, v))
 }

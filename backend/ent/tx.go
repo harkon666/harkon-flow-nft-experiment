@@ -12,6 +12,10 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Event is the client for interacting with the Event builders.
+	Event *EventClient
+	// EventPass is the client for interacting with the EventPass builders.
+	EventPass *EventPassClient
 	// NFTAccessory is the client for interacting with the NFTAccessory builders.
 	NFTAccessory *NFTAccessoryClient
 	// NFTMoment is the client for interacting with the NFTMoment builders.
@@ -149,6 +153,8 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Event = NewEventClient(tx.config)
+	tx.EventPass = NewEventPassClient(tx.config)
 	tx.NFTAccessory = NewNFTAccessoryClient(tx.config)
 	tx.NFTMoment = NewNFTMomentClient(tx.config)
 	tx.User = NewUserClient(tx.config)
@@ -161,7 +167,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: NFTAccessory.QueryXXX(), the query will be executed
+// applies a query, for example: Event.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

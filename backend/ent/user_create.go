@@ -3,6 +3,8 @@
 package ent
 
 import (
+	"backend/ent/event"
+	"backend/ent/eventpass"
 	"backend/ent/nftaccessory"
 	"backend/ent/nftmoment"
 	"backend/ent/user"
@@ -27,19 +29,124 @@ func (_c *UserCreate) SetAddress(v string) *UserCreate {
 	return _c
 }
 
-// AddAccessoryIDs adds the "accessories" edge to the NFTAccessory entity by IDs.
-func (_c *UserCreate) AddAccessoryIDs(ids ...int) *UserCreate {
-	_c.mutation.AddAccessoryIDs(ids...)
+// SetNickname sets the "nickname" field.
+func (_c *UserCreate) SetNickname(v string) *UserCreate {
+	_c.mutation.SetNickname(v)
 	return _c
 }
 
-// AddAccessories adds the "accessories" edges to the NFTAccessory entity.
-func (_c *UserCreate) AddAccessories(v ...*NFTAccessory) *UserCreate {
+// SetNillableNickname sets the "nickname" field if the given value is not nil.
+func (_c *UserCreate) SetNillableNickname(v *string) *UserCreate {
+	if v != nil {
+		_c.SetNickname(*v)
+	}
+	return _c
+}
+
+// SetBio sets the "bio" field.
+func (_c *UserCreate) SetBio(v string) *UserCreate {
+	_c.mutation.SetBio(v)
+	return _c
+}
+
+// SetNillableBio sets the "bio" field if the given value is not nil.
+func (_c *UserCreate) SetNillableBio(v *string) *UserCreate {
+	if v != nil {
+		_c.SetBio(*v)
+	}
+	return _c
+}
+
+// SetPfp sets the "pfp" field.
+func (_c *UserCreate) SetPfp(v string) *UserCreate {
+	_c.mutation.SetPfp(v)
+	return _c
+}
+
+// SetNillablePfp sets the "pfp" field if the given value is not nil.
+func (_c *UserCreate) SetNillablePfp(v *string) *UserCreate {
+	if v != nil {
+		_c.SetPfp(*v)
+	}
+	return _c
+}
+
+// SetShortDescription sets the "short_description" field.
+func (_c *UserCreate) SetShortDescription(v string) *UserCreate {
+	_c.mutation.SetShortDescription(v)
+	return _c
+}
+
+// SetNillableShortDescription sets the "short_description" field if the given value is not nil.
+func (_c *UserCreate) SetNillableShortDescription(v *string) *UserCreate {
+	if v != nil {
+		_c.SetShortDescription(*v)
+	}
+	return _c
+}
+
+// SetBgImage sets the "bg_image" field.
+func (_c *UserCreate) SetBgImage(v string) *UserCreate {
+	_c.mutation.SetBgImage(v)
+	return _c
+}
+
+// SetNillableBgImage sets the "bg_image" field if the given value is not nil.
+func (_c *UserCreate) SetNillableBgImage(v *string) *UserCreate {
+	if v != nil {
+		_c.SetBgImage(*v)
+	}
+	return _c
+}
+
+// SetHighlightedEventPassIds sets the "highlighted_eventPass_ids" field.
+func (_c *UserCreate) SetHighlightedEventPassIds(v []uint64) *UserCreate {
+	_c.mutation.SetHighlightedEventPassIds(v)
+	return _c
+}
+
+// SetHighlightedMomentID sets the "highlighted_moment_id" field.
+func (_c *UserCreate) SetHighlightedMomentID(v uint64) *UserCreate {
+	_c.mutation.SetHighlightedMomentID(v)
+	return _c
+}
+
+// SetNillableHighlightedMomentID sets the "highlighted_moment_id" field if the given value is not nil.
+func (_c *UserCreate) SetNillableHighlightedMomentID(v *uint64) *UserCreate {
+	if v != nil {
+		_c.SetHighlightedMomentID(*v)
+	}
+	return _c
+}
+
+// AddEventPassIDs adds the "event_passes" edge to the EventPass entity by IDs.
+func (_c *UserCreate) AddEventPassIDs(ids ...int) *UserCreate {
+	_c.mutation.AddEventPassIDs(ids...)
+	return _c
+}
+
+// AddEventPasses adds the "event_passes" edges to the EventPass entity.
+func (_c *UserCreate) AddEventPasses(v ...*EventPass) *UserCreate {
 	ids := make([]int, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddAccessoryIDs(ids...)
+	return _c.AddEventPassIDs(ids...)
+}
+
+// AddHostedEventIDs adds the "hosted_events" edge to the Event entity by IDs.
+func (_c *UserCreate) AddHostedEventIDs(ids ...int) *UserCreate {
+	_c.mutation.AddHostedEventIDs(ids...)
+	return _c
+}
+
+// AddHostedEvents adds the "hosted_events" edges to the Event entity.
+func (_c *UserCreate) AddHostedEvents(v ...*Event) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddHostedEventIDs(ids...)
 }
 
 // AddMomentIDs adds the "moments" edge to the NFTMoment entity by IDs.
@@ -55,6 +162,21 @@ func (_c *UserCreate) AddMoments(v ...*NFTMoment) *UserCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddMomentIDs(ids...)
+}
+
+// AddAccessoryIDs adds the "accessories" edge to the NFTAccessory entity by IDs.
+func (_c *UserCreate) AddAccessoryIDs(ids ...int) *UserCreate {
+	_c.mutation.AddAccessoryIDs(ids...)
+	return _c
+}
+
+// AddAccessories adds the "accessories" edges to the NFTAccessory entity.
+func (_c *UserCreate) AddAccessories(v ...*NFTAccessory) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAccessoryIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -124,15 +246,59 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldAddress, field.TypeString, value)
 		_node.Address = value
 	}
-	if nodes := _c.mutation.AccessoriesIDs(); len(nodes) > 0 {
+	if value, ok := _c.mutation.Nickname(); ok {
+		_spec.SetField(user.FieldNickname, field.TypeString, value)
+		_node.Nickname = value
+	}
+	if value, ok := _c.mutation.Bio(); ok {
+		_spec.SetField(user.FieldBio, field.TypeString, value)
+		_node.Bio = value
+	}
+	if value, ok := _c.mutation.Pfp(); ok {
+		_spec.SetField(user.FieldPfp, field.TypeString, value)
+		_node.Pfp = value
+	}
+	if value, ok := _c.mutation.ShortDescription(); ok {
+		_spec.SetField(user.FieldShortDescription, field.TypeString, value)
+		_node.ShortDescription = value
+	}
+	if value, ok := _c.mutation.BgImage(); ok {
+		_spec.SetField(user.FieldBgImage, field.TypeString, value)
+		_node.BgImage = value
+	}
+	if value, ok := _c.mutation.HighlightedEventPassIds(); ok {
+		_spec.SetField(user.FieldHighlightedEventPassIds, field.TypeJSON, value)
+		_node.HighlightedEventPassIds = value
+	}
+	if value, ok := _c.mutation.HighlightedMomentID(); ok {
+		_spec.SetField(user.FieldHighlightedMomentID, field.TypeUint64, value)
+		_node.HighlightedMomentID = value
+	}
+	if nodes := _c.mutation.EventPassesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.AccessoriesTable,
-			Columns: []string{user.AccessoriesColumn},
+			Table:   user.EventPassesTable,
+			Columns: []string{user.EventPassesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(nftaccessory.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(eventpass.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.HostedEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.HostedEventsTable,
+			Columns: []string{user.HostedEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(event.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -149,6 +315,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(nftmoment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AccessoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AccessoriesTable,
+			Columns: []string{user.AccessoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nftaccessory.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

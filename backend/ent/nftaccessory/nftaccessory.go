@@ -20,7 +20,7 @@ const (
 	FieldDescription = "description"
 	// FieldThumbnail holds the string denoting the thumbnail field in the database.
 	FieldThumbnail = "thumbnail"
-	// FieldEquipmentType holds the string denoting the equipmenttype field in the database.
+	// FieldEquipmentType holds the string denoting the equipment_type field in the database.
 	FieldEquipmentType = "equipment_type"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
@@ -104,7 +104,7 @@ func ByThumbnail(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldThumbnail, opts...).ToFunc()
 }
 
-// ByEquipmentType orders the results by the equipmentType field.
+// ByEquipmentType orders the results by the equipment_type field.
 func ByEquipmentType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEquipmentType, opts...).ToFunc()
 }

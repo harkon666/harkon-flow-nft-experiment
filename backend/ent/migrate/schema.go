@@ -8,6 +8,63 @@ import (
 )
 
 var (
+	// EventsColumns holds the columns for the "events" table.
+	EventsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "event_id", Type: field.TypeUint64, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString},
+		{Name: "thumbnail", Type: field.TypeString},
+		{Name: "event_type", Type: field.TypeUint8},
+		{Name: "location", Type: field.TypeString},
+		{Name: "start_date", Type: field.TypeTime},
+		{Name: "end_date", Type: field.TypeTime},
+		{Name: "quota", Type: field.TypeUint64},
+		{Name: "attendees", Type: field.TypeJSON, Nullable: true},
+		{Name: "user_hosted_events", Type: field.TypeInt},
+	}
+	// EventsTable holds the schema information for the "events" table.
+	EventsTable = &schema.Table{
+		Name:       "events",
+		Columns:    EventsColumns,
+		PrimaryKey: []*schema.Column{EventsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "events_users_hosted_events",
+				Columns:    []*schema.Column{EventsColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// EventPassesColumns holds the columns for the "event_passes" table.
+	EventPassesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "pass_id", Type: field.TypeUint64, Unique: true},
+		{Name: "is_redeemed", Type: field.TypeBool, Default: false},
+		{Name: "event_passes_issued", Type: field.TypeInt},
+		{Name: "user_event_passes", Type: field.TypeInt},
+	}
+	// EventPassesTable holds the schema information for the "event_passes" table.
+	EventPassesTable = &schema.Table{
+		Name:       "event_passes",
+		Columns:    EventPassesColumns,
+		PrimaryKey: []*schema.Column{EventPassesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "event_passes_events_passes_issued",
+				Columns:    []*schema.Column{EventPassesColumns[3]},
+				RefColumns: []*schema.Column{EventsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "event_passes_users_event_passes",
+				Columns:    []*schema.Column{EventPassesColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// NftAccessoriesColumns holds the columns for the "nft_accessories" table.
 	NftAccessoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -46,6 +103,7 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString},
 		{Name: "thumbnail", Type: field.TypeString},
+		{Name: "event_pass_moment", Type: field.TypeInt, Unique: true, Nullable: true},
 		{Name: "user_moments", Type: field.TypeInt},
 	}
 	// NftMomentsTable holds the schema information for the "nft_moments" table.
@@ -55,8 +113,14 @@ var (
 		PrimaryKey: []*schema.Column{NftMomentsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "nft_moments_users_moments",
+				Symbol:     "nft_moments_event_passes_moment",
 				Columns:    []*schema.Column{NftMomentsColumns[5]},
+				RefColumns: []*schema.Column{EventPassesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "nft_moments_users_moments",
+				Columns:    []*schema.Column{NftMomentsColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -66,6 +130,13 @@ var (
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "address", Type: field.TypeString, Unique: true},
+		{Name: "nickname", Type: field.TypeString, Nullable: true},
+		{Name: "bio", Type: field.TypeString, Nullable: true},
+		{Name: "pfp", Type: field.TypeString, Nullable: true},
+		{Name: "short_description", Type: field.TypeString, Nullable: true},
+		{Name: "bg_image", Type: field.TypeString, Nullable: true},
+		{Name: "highlighted_event_pass_ids", Type: field.TypeJSON, Nullable: true},
+		{Name: "highlighted_moment_id", Type: field.TypeUint64, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -75,6 +146,8 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		EventsTable,
+		EventPassesTable,
 		NftAccessoriesTable,
 		NftMomentsTable,
 		UsersTable,
@@ -82,7 +155,11 @@ var (
 )
 
 func init() {
+	EventsTable.ForeignKeys[0].RefTable = UsersTable
+	EventPassesTable.ForeignKeys[0].RefTable = EventsTable
+	EventPassesTable.ForeignKeys[1].RefTable = UsersTable
 	NftAccessoriesTable.ForeignKeys[0].RefTable = NftMomentsTable
 	NftAccessoriesTable.ForeignKeys[1].RefTable = UsersTable
-	NftMomentsTable.ForeignKeys[0].RefTable = UsersTable
+	NftMomentsTable.ForeignKeys[0].RefTable = EventPassesTable
+	NftMomentsTable.ForeignKeys[1].RefTable = UsersTable
 }

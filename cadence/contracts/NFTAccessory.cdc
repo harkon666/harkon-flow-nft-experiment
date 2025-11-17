@@ -401,14 +401,6 @@ access(all) contract NFTAccessory: NonFungibleToken {
         self.CollectionPublicPath = /public/NFTAccessoryCollection
         self.MinterStoragePath = /storage/NFTAccessoryMinter
 
-        // Create a Collection resource and save it to storage
-        let collection <- create Collection()
-        self.account.storage.save(<-collection, to: self.CollectionStoragePath)
-
-        // create a public capability for the collection
-        let collectionCap = self.account.capabilities.storage.issue<&NFTAccessory.Collection>(self.CollectionStoragePath)
-        self.account.capabilities.publish(collectionCap, at: self.CollectionPublicPath)
-
         // Create a Minter resource and save it to storage
         let minter <- create NFTMinter()
         self.account.storage.save(<-minter, to: self.MinterStoragePath)

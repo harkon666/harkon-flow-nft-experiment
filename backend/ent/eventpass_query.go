@@ -3,8 +3,8 @@
 package ent
 
 import (
+	"backend/ent/event"
 	"backend/ent/eventpass"
-	"backend/ent/nftaccessory"
 	"backend/ent/nftmoment"
 	"backend/ent/predicate"
 	"backend/ent/user"
@@ -19,55 +19,55 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// NFTMomentQuery is the builder for querying NFTMoment entities.
-type NFTMomentQuery struct {
+// EventPassQuery is the builder for querying EventPass entities.
+type EventPassQuery struct {
 	config
-	ctx                     *QueryContext
-	order                   []nftmoment.OrderOption
-	inters                  []Interceptor
-	predicates              []predicate.NFTMoment
-	withOwner               *UserQuery
-	withEquippedAccessories *NFTAccessoryQuery
-	withMintedWithPass      *EventPassQuery
-	withFKs                 bool
+	ctx        *QueryContext
+	order      []eventpass.OrderOption
+	inters     []Interceptor
+	predicates []predicate.EventPass
+	withOwner  *UserQuery
+	withEvent  *EventQuery
+	withMoment *NFTMomentQuery
+	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the NFTMomentQuery builder.
-func (_q *NFTMomentQuery) Where(ps ...predicate.NFTMoment) *NFTMomentQuery {
+// Where adds a new predicate for the EventPassQuery builder.
+func (_q *EventPassQuery) Where(ps ...predicate.EventPass) *EventPassQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *NFTMomentQuery) Limit(limit int) *NFTMomentQuery {
+func (_q *EventPassQuery) Limit(limit int) *EventPassQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *NFTMomentQuery) Offset(offset int) *NFTMomentQuery {
+func (_q *EventPassQuery) Offset(offset int) *EventPassQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *NFTMomentQuery) Unique(unique bool) *NFTMomentQuery {
+func (_q *EventPassQuery) Unique(unique bool) *EventPassQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *NFTMomentQuery) Order(o ...nftmoment.OrderOption) *NFTMomentQuery {
+func (_q *EventPassQuery) Order(o ...eventpass.OrderOption) *EventPassQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
 // QueryOwner chains the current query on the "owner" edge.
-func (_q *NFTMomentQuery) QueryOwner() *UserQuery {
+func (_q *EventPassQuery) QueryOwner() *UserQuery {
 	query := (&UserClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
@@ -78,9 +78,9 @@ func (_q *NFTMomentQuery) QueryOwner() *UserQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(nftmoment.Table, nftmoment.FieldID, selector),
+			sqlgraph.From(eventpass.Table, eventpass.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, nftmoment.OwnerTable, nftmoment.OwnerColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, eventpass.OwnerTable, eventpass.OwnerColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -88,9 +88,9 @@ func (_q *NFTMomentQuery) QueryOwner() *UserQuery {
 	return query
 }
 
-// QueryEquippedAccessories chains the current query on the "equipped_accessories" edge.
-func (_q *NFTMomentQuery) QueryEquippedAccessories() *NFTAccessoryQuery {
-	query := (&NFTAccessoryClient{config: _q.config}).Query()
+// QueryEvent chains the current query on the "event" edge.
+func (_q *EventPassQuery) QueryEvent() *EventQuery {
+	query := (&EventClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -100,9 +100,9 @@ func (_q *NFTMomentQuery) QueryEquippedAccessories() *NFTAccessoryQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(nftmoment.Table, nftmoment.FieldID, selector),
-			sqlgraph.To(nftaccessory.Table, nftaccessory.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, nftmoment.EquippedAccessoriesTable, nftmoment.EquippedAccessoriesColumn),
+			sqlgraph.From(eventpass.Table, eventpass.FieldID, selector),
+			sqlgraph.To(event.Table, event.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, eventpass.EventTable, eventpass.EventColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -110,9 +110,9 @@ func (_q *NFTMomentQuery) QueryEquippedAccessories() *NFTAccessoryQuery {
 	return query
 }
 
-// QueryMintedWithPass chains the current query on the "minted_with_pass" edge.
-func (_q *NFTMomentQuery) QueryMintedWithPass() *EventPassQuery {
-	query := (&EventPassClient{config: _q.config}).Query()
+// QueryMoment chains the current query on the "moment" edge.
+func (_q *EventPassQuery) QueryMoment() *NFTMomentQuery {
+	query := (&NFTMomentClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -122,9 +122,9 @@ func (_q *NFTMomentQuery) QueryMintedWithPass() *EventPassQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(nftmoment.Table, nftmoment.FieldID, selector),
-			sqlgraph.To(eventpass.Table, eventpass.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, nftmoment.MintedWithPassTable, nftmoment.MintedWithPassColumn),
+			sqlgraph.From(eventpass.Table, eventpass.FieldID, selector),
+			sqlgraph.To(nftmoment.Table, nftmoment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, eventpass.MomentTable, eventpass.MomentColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -132,21 +132,21 @@ func (_q *NFTMomentQuery) QueryMintedWithPass() *EventPassQuery {
 	return query
 }
 
-// First returns the first NFTMoment entity from the query.
-// Returns a *NotFoundError when no NFTMoment was found.
-func (_q *NFTMomentQuery) First(ctx context.Context) (*NFTMoment, error) {
+// First returns the first EventPass entity from the query.
+// Returns a *NotFoundError when no EventPass was found.
+func (_q *EventPassQuery) First(ctx context.Context) (*EventPass, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{nftmoment.Label}
+		return nil, &NotFoundError{eventpass.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *NFTMomentQuery) FirstX(ctx context.Context) *NFTMoment {
+func (_q *EventPassQuery) FirstX(ctx context.Context) *EventPass {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -154,22 +154,22 @@ func (_q *NFTMomentQuery) FirstX(ctx context.Context) *NFTMoment {
 	return node
 }
 
-// FirstID returns the first NFTMoment ID from the query.
-// Returns a *NotFoundError when no NFTMoment ID was found.
-func (_q *NFTMomentQuery) FirstID(ctx context.Context) (id int, err error) {
+// FirstID returns the first EventPass ID from the query.
+// Returns a *NotFoundError when no EventPass ID was found.
+func (_q *EventPassQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{nftmoment.Label}
+		err = &NotFoundError{eventpass.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *NFTMomentQuery) FirstIDX(ctx context.Context) int {
+func (_q *EventPassQuery) FirstIDX(ctx context.Context) int {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -177,10 +177,10 @@ func (_q *NFTMomentQuery) FirstIDX(ctx context.Context) int {
 	return id
 }
 
-// Only returns a single NFTMoment entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one NFTMoment entity is found.
-// Returns a *NotFoundError when no NFTMoment entities are found.
-func (_q *NFTMomentQuery) Only(ctx context.Context) (*NFTMoment, error) {
+// Only returns a single EventPass entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one EventPass entity is found.
+// Returns a *NotFoundError when no EventPass entities are found.
+func (_q *EventPassQuery) Only(ctx context.Context) (*EventPass, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -189,14 +189,14 @@ func (_q *NFTMomentQuery) Only(ctx context.Context) (*NFTMoment, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{nftmoment.Label}
+		return nil, &NotFoundError{eventpass.Label}
 	default:
-		return nil, &NotSingularError{nftmoment.Label}
+		return nil, &NotSingularError{eventpass.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *NFTMomentQuery) OnlyX(ctx context.Context) *NFTMoment {
+func (_q *EventPassQuery) OnlyX(ctx context.Context) *EventPass {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -204,10 +204,10 @@ func (_q *NFTMomentQuery) OnlyX(ctx context.Context) *NFTMoment {
 	return node
 }
 
-// OnlyID is like Only, but returns the only NFTMoment ID in the query.
-// Returns a *NotSingularError when more than one NFTMoment ID is found.
+// OnlyID is like Only, but returns the only EventPass ID in the query.
+// Returns a *NotSingularError when more than one EventPass ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *NFTMomentQuery) OnlyID(ctx context.Context) (id int, err error) {
+func (_q *EventPassQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
@@ -216,15 +216,15 @@ func (_q *NFTMomentQuery) OnlyID(ctx context.Context) (id int, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{nftmoment.Label}
+		err = &NotFoundError{eventpass.Label}
 	default:
-		err = &NotSingularError{nftmoment.Label}
+		err = &NotSingularError{eventpass.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *NFTMomentQuery) OnlyIDX(ctx context.Context) int {
+func (_q *EventPassQuery) OnlyIDX(ctx context.Context) int {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -232,18 +232,18 @@ func (_q *NFTMomentQuery) OnlyIDX(ctx context.Context) int {
 	return id
 }
 
-// All executes the query and returns a list of NFTMoments.
-func (_q *NFTMomentQuery) All(ctx context.Context) ([]*NFTMoment, error) {
+// All executes the query and returns a list of EventPasses.
+func (_q *EventPassQuery) All(ctx context.Context) ([]*EventPass, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*NFTMoment, *NFTMomentQuery]()
-	return withInterceptors[[]*NFTMoment](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*EventPass, *EventPassQuery]()
+	return withInterceptors[[]*EventPass](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *NFTMomentQuery) AllX(ctx context.Context) []*NFTMoment {
+func (_q *EventPassQuery) AllX(ctx context.Context) []*EventPass {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -251,20 +251,20 @@ func (_q *NFTMomentQuery) AllX(ctx context.Context) []*NFTMoment {
 	return nodes
 }
 
-// IDs executes the query and returns a list of NFTMoment IDs.
-func (_q *NFTMomentQuery) IDs(ctx context.Context) (ids []int, err error) {
+// IDs executes the query and returns a list of EventPass IDs.
+func (_q *EventPassQuery) IDs(ctx context.Context) (ids []int, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(nftmoment.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(eventpass.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *NFTMomentQuery) IDsX(ctx context.Context) []int {
+func (_q *EventPassQuery) IDsX(ctx context.Context) []int {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -273,16 +273,16 @@ func (_q *NFTMomentQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (_q *NFTMomentQuery) Count(ctx context.Context) (int, error) {
+func (_q *EventPassQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*NFTMomentQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*EventPassQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *NFTMomentQuery) CountX(ctx context.Context) int {
+func (_q *EventPassQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -291,7 +291,7 @@ func (_q *NFTMomentQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *NFTMomentQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *EventPassQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -304,7 +304,7 @@ func (_q *NFTMomentQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *NFTMomentQuery) ExistX(ctx context.Context) bool {
+func (_q *EventPassQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -312,21 +312,21 @@ func (_q *NFTMomentQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the NFTMomentQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the EventPassQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *NFTMomentQuery) Clone() *NFTMomentQuery {
+func (_q *EventPassQuery) Clone() *EventPassQuery {
 	if _q == nil {
 		return nil
 	}
-	return &NFTMomentQuery{
-		config:                  _q.config,
-		ctx:                     _q.ctx.Clone(),
-		order:                   append([]nftmoment.OrderOption{}, _q.order...),
-		inters:                  append([]Interceptor{}, _q.inters...),
-		predicates:              append([]predicate.NFTMoment{}, _q.predicates...),
-		withOwner:               _q.withOwner.Clone(),
-		withEquippedAccessories: _q.withEquippedAccessories.Clone(),
-		withMintedWithPass:      _q.withMintedWithPass.Clone(),
+	return &EventPassQuery{
+		config:     _q.config,
+		ctx:        _q.ctx.Clone(),
+		order:      append([]eventpass.OrderOption{}, _q.order...),
+		inters:     append([]Interceptor{}, _q.inters...),
+		predicates: append([]predicate.EventPass{}, _q.predicates...),
+		withOwner:  _q.withOwner.Clone(),
+		withEvent:  _q.withEvent.Clone(),
+		withMoment: _q.withMoment.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -335,7 +335,7 @@ func (_q *NFTMomentQuery) Clone() *NFTMomentQuery {
 
 // WithOwner tells the query-builder to eager-load the nodes that are connected to
 // the "owner" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *NFTMomentQuery) WithOwner(opts ...func(*UserQuery)) *NFTMomentQuery {
+func (_q *EventPassQuery) WithOwner(opts ...func(*UserQuery)) *EventPassQuery {
 	query := (&UserClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
@@ -344,25 +344,25 @@ func (_q *NFTMomentQuery) WithOwner(opts ...func(*UserQuery)) *NFTMomentQuery {
 	return _q
 }
 
-// WithEquippedAccessories tells the query-builder to eager-load the nodes that are connected to
-// the "equipped_accessories" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *NFTMomentQuery) WithEquippedAccessories(opts ...func(*NFTAccessoryQuery)) *NFTMomentQuery {
-	query := (&NFTAccessoryClient{config: _q.config}).Query()
+// WithEvent tells the query-builder to eager-load the nodes that are connected to
+// the "event" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *EventPassQuery) WithEvent(opts ...func(*EventQuery)) *EventPassQuery {
+	query := (&EventClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withEquippedAccessories = query
+	_q.withEvent = query
 	return _q
 }
 
-// WithMintedWithPass tells the query-builder to eager-load the nodes that are connected to
-// the "minted_with_pass" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *NFTMomentQuery) WithMintedWithPass(opts ...func(*EventPassQuery)) *NFTMomentQuery {
-	query := (&EventPassClient{config: _q.config}).Query()
+// WithMoment tells the query-builder to eager-load the nodes that are connected to
+// the "moment" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *EventPassQuery) WithMoment(opts ...func(*NFTMomentQuery)) *EventPassQuery {
+	query := (&NFTMomentClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withMintedWithPass = query
+	_q.withMoment = query
 	return _q
 }
 
@@ -372,19 +372,19 @@ func (_q *NFTMomentQuery) WithMintedWithPass(opts ...func(*EventPassQuery)) *NFT
 // Example:
 //
 //	var v []struct {
-//		NftID uint64 `json:"nft_id,omitempty"`
+//		PassID uint64 `json:"pass_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.NFTMoment.Query().
-//		GroupBy(nftmoment.FieldNftID).
+//	client.EventPass.Query().
+//		GroupBy(eventpass.FieldPassID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (_q *NFTMomentQuery) GroupBy(field string, fields ...string) *NFTMomentGroupBy {
+func (_q *EventPassQuery) GroupBy(field string, fields ...string) *EventPassGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &NFTMomentGroupBy{build: _q}
+	grbuild := &EventPassGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = nftmoment.Label
+	grbuild.label = eventpass.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -395,26 +395,26 @@ func (_q *NFTMomentQuery) GroupBy(field string, fields ...string) *NFTMomentGrou
 // Example:
 //
 //	var v []struct {
-//		NftID uint64 `json:"nft_id,omitempty"`
+//		PassID uint64 `json:"pass_id,omitempty"`
 //	}
 //
-//	client.NFTMoment.Query().
-//		Select(nftmoment.FieldNftID).
+//	client.EventPass.Query().
+//		Select(eventpass.FieldPassID).
 //		Scan(ctx, &v)
-func (_q *NFTMomentQuery) Select(fields ...string) *NFTMomentSelect {
+func (_q *EventPassQuery) Select(fields ...string) *EventPassSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &NFTMomentSelect{NFTMomentQuery: _q}
-	sbuild.label = nftmoment.Label
+	sbuild := &EventPassSelect{EventPassQuery: _q}
+	sbuild.label = eventpass.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a NFTMomentSelect configured with the given aggregations.
-func (_q *NFTMomentQuery) Aggregate(fns ...AggregateFunc) *NFTMomentSelect {
+// Aggregate returns a EventPassSelect configured with the given aggregations.
+func (_q *EventPassQuery) Aggregate(fns ...AggregateFunc) *EventPassSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *NFTMomentQuery) prepareQuery(ctx context.Context) error {
+func (_q *EventPassQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
@@ -426,7 +426,7 @@ func (_q *NFTMomentQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !nftmoment.ValidColumn(f) {
+		if !eventpass.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -440,28 +440,28 @@ func (_q *NFTMomentQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (_q *NFTMomentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*NFTMoment, error) {
+func (_q *EventPassQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*EventPass, error) {
 	var (
-		nodes       = []*NFTMoment{}
+		nodes       = []*EventPass{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
 		loadedTypes = [3]bool{
 			_q.withOwner != nil,
-			_q.withEquippedAccessories != nil,
-			_q.withMintedWithPass != nil,
+			_q.withEvent != nil,
+			_q.withMoment != nil,
 		}
 	)
-	if _q.withOwner != nil || _q.withMintedWithPass != nil {
+	if _q.withOwner != nil || _q.withEvent != nil {
 		withFKs = true
 	}
 	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, nftmoment.ForeignKeys...)
+		_spec.Node.Columns = append(_spec.Node.Columns, eventpass.ForeignKeys...)
 	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*NFTMoment).scanValues(nil, columns)
+		return (*EventPass).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &NFTMoment{config: _q.config}
+		node := &EventPass{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -477,36 +477,33 @@ func (_q *NFTMomentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*NF
 	}
 	if query := _q.withOwner; query != nil {
 		if err := _q.loadOwner(ctx, query, nodes, nil,
-			func(n *NFTMoment, e *User) { n.Edges.Owner = e }); err != nil {
+			func(n *EventPass, e *User) { n.Edges.Owner = e }); err != nil {
 			return nil, err
 		}
 	}
-	if query := _q.withEquippedAccessories; query != nil {
-		if err := _q.loadEquippedAccessories(ctx, query, nodes,
-			func(n *NFTMoment) { n.Edges.EquippedAccessories = []*NFTAccessory{} },
-			func(n *NFTMoment, e *NFTAccessory) {
-				n.Edges.EquippedAccessories = append(n.Edges.EquippedAccessories, e)
-			}); err != nil {
+	if query := _q.withEvent; query != nil {
+		if err := _q.loadEvent(ctx, query, nodes, nil,
+			func(n *EventPass, e *Event) { n.Edges.Event = e }); err != nil {
 			return nil, err
 		}
 	}
-	if query := _q.withMintedWithPass; query != nil {
-		if err := _q.loadMintedWithPass(ctx, query, nodes, nil,
-			func(n *NFTMoment, e *EventPass) { n.Edges.MintedWithPass = e }); err != nil {
+	if query := _q.withMoment; query != nil {
+		if err := _q.loadMoment(ctx, query, nodes, nil,
+			func(n *EventPass, e *NFTMoment) { n.Edges.Moment = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (_q *NFTMomentQuery) loadOwner(ctx context.Context, query *UserQuery, nodes []*NFTMoment, init func(*NFTMoment), assign func(*NFTMoment, *User)) error {
+func (_q *EventPassQuery) loadOwner(ctx context.Context, query *UserQuery, nodes []*EventPass, init func(*EventPass), assign func(*EventPass, *User)) error {
 	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*NFTMoment)
+	nodeids := make(map[int][]*EventPass)
 	for i := range nodes {
-		if nodes[i].user_moments == nil {
+		if nodes[i].user_event_passes == nil {
 			continue
 		}
-		fk := *nodes[i].user_moments
+		fk := *nodes[i].user_event_passes
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -523,7 +520,7 @@ func (_q *NFTMomentQuery) loadOwner(ctx context.Context, query *UserQuery, nodes
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_moments" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_event_passes" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -531,45 +528,14 @@ func (_q *NFTMomentQuery) loadOwner(ctx context.Context, query *UserQuery, nodes
 	}
 	return nil
 }
-func (_q *NFTMomentQuery) loadEquippedAccessories(ctx context.Context, query *NFTAccessoryQuery, nodes []*NFTMoment, init func(*NFTMoment), assign func(*NFTMoment, *NFTAccessory)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*NFTMoment)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	query.withFKs = true
-	query.Where(predicate.NFTAccessory(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(nftmoment.EquippedAccessoriesColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.nft_moment_equipped_accessories
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "nft_moment_equipped_accessories" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "nft_moment_equipped_accessories" returned %v for node %v`, *fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
-func (_q *NFTMomentQuery) loadMintedWithPass(ctx context.Context, query *EventPassQuery, nodes []*NFTMoment, init func(*NFTMoment), assign func(*NFTMoment, *EventPass)) error {
+func (_q *EventPassQuery) loadEvent(ctx context.Context, query *EventQuery, nodes []*EventPass, init func(*EventPass), assign func(*EventPass, *Event)) error {
 	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*NFTMoment)
+	nodeids := make(map[int][]*EventPass)
 	for i := range nodes {
-		if nodes[i].event_pass_moment == nil {
+		if nodes[i].event_passes_issued == nil {
 			continue
 		}
-		fk := *nodes[i].event_pass_moment
+		fk := *nodes[i].event_passes_issued
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -578,7 +544,7 @@ func (_q *NFTMomentQuery) loadMintedWithPass(ctx context.Context, query *EventPa
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(eventpass.IDIn(ids...))
+	query.Where(event.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -586,7 +552,7 @@ func (_q *NFTMomentQuery) loadMintedWithPass(ctx context.Context, query *EventPa
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "event_pass_moment" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "event_passes_issued" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -594,8 +560,36 @@ func (_q *NFTMomentQuery) loadMintedWithPass(ctx context.Context, query *EventPa
 	}
 	return nil
 }
+func (_q *EventPassQuery) loadMoment(ctx context.Context, query *NFTMomentQuery, nodes []*EventPass, init func(*EventPass), assign func(*EventPass, *NFTMoment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*EventPass)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+	}
+	query.withFKs = true
+	query.Where(predicate.NFTMoment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(eventpass.MomentColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.event_pass_moment
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "event_pass_moment" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "event_pass_moment" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
-func (_q *NFTMomentQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *EventPassQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
@@ -604,8 +598,8 @@ func (_q *NFTMomentQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *NFTMomentQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(nftmoment.Table, nftmoment.Columns, sqlgraph.NewFieldSpec(nftmoment.FieldID, field.TypeInt))
+func (_q *EventPassQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(eventpass.Table, eventpass.Columns, sqlgraph.NewFieldSpec(eventpass.FieldID, field.TypeInt))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -614,9 +608,9 @@ func (_q *NFTMomentQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, nftmoment.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, eventpass.FieldID)
 		for i := range fields {
-			if fields[i] != nftmoment.FieldID {
+			if fields[i] != eventpass.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
@@ -644,12 +638,12 @@ func (_q *NFTMomentQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *NFTMomentQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *EventPassQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(nftmoment.Table)
+	t1 := builder.Table(eventpass.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = nftmoment.Columns
+		columns = eventpass.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -676,28 +670,28 @@ func (_q *NFTMomentQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// NFTMomentGroupBy is the group-by builder for NFTMoment entities.
-type NFTMomentGroupBy struct {
+// EventPassGroupBy is the group-by builder for EventPass entities.
+type EventPassGroupBy struct {
 	selector
-	build *NFTMomentQuery
+	build *EventPassQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *NFTMomentGroupBy) Aggregate(fns ...AggregateFunc) *NFTMomentGroupBy {
+func (_g *EventPassGroupBy) Aggregate(fns ...AggregateFunc) *EventPassGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *NFTMomentGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *EventPassGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*NFTMomentQuery, *NFTMomentGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*EventPassQuery, *EventPassGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *NFTMomentGroupBy) sqlScan(ctx context.Context, root *NFTMomentQuery, v any) error {
+func (_g *EventPassGroupBy) sqlScan(ctx context.Context, root *EventPassQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -724,28 +718,28 @@ func (_g *NFTMomentGroupBy) sqlScan(ctx context.Context, root *NFTMomentQuery, v
 	return sql.ScanSlice(rows, v)
 }
 
-// NFTMomentSelect is the builder for selecting fields of NFTMoment entities.
-type NFTMomentSelect struct {
-	*NFTMomentQuery
+// EventPassSelect is the builder for selecting fields of EventPass entities.
+type EventPassSelect struct {
+	*EventPassQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *NFTMomentSelect) Aggregate(fns ...AggregateFunc) *NFTMomentSelect {
+func (_s *EventPassSelect) Aggregate(fns ...AggregateFunc) *EventPassSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *NFTMomentSelect) Scan(ctx context.Context, v any) error {
+func (_s *EventPassSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*NFTMomentQuery, *NFTMomentSelect](ctx, _s.NFTMomentQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*EventPassQuery, *EventPassSelect](ctx, _s.EventPassQuery, _s, _s.inters, v)
 }
 
-func (_s *NFTMomentSelect) sqlScan(ctx context.Context, root *NFTMomentQuery, v any) error {
+func (_s *EventPassSelect) sqlScan(ctx context.Context, root *EventPassQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {
