@@ -5,6 +5,12 @@ import "EventPass"
 import "NFTMoment"
 
 transaction(
+  nickname: String?,
+  bio: String?,
+  socials: {String: String},
+  pfp: String,
+  shortDescription: String,
+  bgImage: String,
   highlightedEventPassIds: [UInt64?],
   momentID: UInt64?
 ) {
@@ -19,12 +25,12 @@ transaction(
         let momentCollection = signer.storage.borrow<&NFTMoment.Collection>(from: NFTMoment.CollectionStoragePath)
         let momentRef = momentID != nil ? momentCollection?.borrowNFT(momentID!) as! &NFTMoment.NFT : nil
         userProfile.updateProfile(
-          nickname: "test",
-          bio: "test",
-          socials: {"test": "test"},
-          pfp: "test",
-          shortDescription: "test",
-          bgImage: "test",
+          nickname: nickname,
+          bio: bio,
+          socials: socials,
+          pfp: pfp,
+          shortDescription: shortDescription,
+          bgImage: bgImage,
           highlightedEventPassIds: highlightedEventPassIds,
           eventPassCollection: eventPassCollection,
           momentRef: momentRef,
