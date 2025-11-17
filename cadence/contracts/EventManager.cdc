@@ -230,10 +230,6 @@ access(all) contract EventManager {
             ?? panic("Event tidak ditemukan")
         
         eventRef.registerEvent(userAddress: userAddress)
-        emit UserRegistered(
-          eventID: eventID,
-          userAddress: userAddress
-        )
     }
     access(all) resource Admin {
         //backend gated, only admin to make sure user is attending the event
