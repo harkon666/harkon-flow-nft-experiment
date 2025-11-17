@@ -35,9 +35,12 @@ func main() {
 
 	h := &Handler{DB: client}
 
+	e.GET("/listings", h.getListings)
+	e.GET("/events", h.getEvents)
+	e.GET("/profiles/:address", h.getUserProfile)
 	e.GET("/accessories", h.getAccessories)
-
 	e.GET("/moments", h.getMoments)
+
 	e.POST("/moment/free", h.freeMintMoment)
 	e.POST("/moment/with-event-pass", h.mintMomentWithEventPass)
 
