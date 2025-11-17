@@ -12,6 +12,7 @@ access(all) contract EventManager {
     }
 
     access(all) event EventCreated(
+      eventID: UInt64,
       hostAddress: Address,
       eventName: String,
       description: String,
@@ -201,7 +202,11 @@ access(all) contract EventManager {
           endDate: endDate,
           quota: quota,
       )
+      let newID: UInt64 = newEvent.eventID
+      
+      EventManager.events[newID] = newEvent
       emit EventManager.EventCreated(
+          eventID: newID,
           hostAddress: hostAddress,
           eventName: eventName,
           description: description,
@@ -214,9 +219,6 @@ access(all) contract EventManager {
           endDate: endDate,
           quota: quota
       )
-      let newID: UInt64 = newEvent.eventID
-      
-      EventManager.events[newID] = newEvent
       
       return newID
     }
