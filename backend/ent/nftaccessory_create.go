@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"backend/ent/listing"
 	"backend/ent/nftaccessory"
 	"backend/ent/nftmoment"
 	"backend/ent/user"
@@ -79,6 +80,25 @@ func (_c *NFTAccessoryCreate) SetNillableEquippedOnMomentID(id *int) *NFTAccesso
 // SetEquippedOnMoment sets the "equipped_on_moment" edge to the NFTMoment entity.
 func (_c *NFTAccessoryCreate) SetEquippedOnMoment(v *NFTMoment) *NFTAccessoryCreate {
 	return _c.SetEquippedOnMomentID(v.ID)
+}
+
+// SetListingID sets the "listing" edge to the Listing entity by ID.
+func (_c *NFTAccessoryCreate) SetListingID(id int) *NFTAccessoryCreate {
+	_c.mutation.SetListingID(id)
+	return _c
+}
+
+// SetNillableListingID sets the "listing" edge to the Listing entity by ID if the given value is not nil.
+func (_c *NFTAccessoryCreate) SetNillableListingID(id *int) *NFTAccessoryCreate {
+	if id != nil {
+		_c = _c.SetListingID(*id)
+	}
+	return _c
+}
+
+// SetListing sets the "listing" edge to the Listing entity.
+func (_c *NFTAccessoryCreate) SetListing(v *Listing) *NFTAccessoryCreate {
+	return _c.SetListingID(v.ID)
 }
 
 // Mutation returns the NFTAccessoryMutation object of the builder.
@@ -211,6 +231,23 @@ func (_c *NFTAccessoryCreate) createSpec() (*NFTAccessory, *sqlgraph.CreateSpec)
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.nft_moment_equipped_accessories = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ListingIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   nftaccessory.ListingTable,
+			Columns: []string{nftaccessory.ListingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listing.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.listing_nft_accessory = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

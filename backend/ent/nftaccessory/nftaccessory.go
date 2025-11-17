@@ -26,6 +26,8 @@ const (
 	EdgeOwner = "owner"
 	// EdgeEquippedOnMoment holds the string denoting the equipped_on_moment edge name in mutations.
 	EdgeEquippedOnMoment = "equipped_on_moment"
+	// EdgeListing holds the string denoting the listing edge name in mutations.
+	EdgeListing = "listing"
 	// Table holds the table name of the nftaccessory in the database.
 	Table = "nft_accessories"
 	// OwnerTable is the table that holds the owner relation/edge.
@@ -42,6 +44,13 @@ const (
 	EquippedOnMomentInverseTable = "nft_moments"
 	// EquippedOnMomentColumn is the table column denoting the equipped_on_moment relation/edge.
 	EquippedOnMomentColumn = "nft_moment_equipped_accessories"
+	// ListingTable is the table that holds the listing relation/edge.
+	ListingTable = "nft_accessories"
+	// ListingInverseTable is the table name for the Listing entity.
+	// It exists in this package in order to avoid circular dependency with the "listing" package.
+	ListingInverseTable = "listings"
+	// ListingColumn is the table column denoting the listing relation/edge.
+	ListingColumn = "listing_nft_accessory"
 )
 
 // Columns holds all SQL columns for nftaccessory fields.
@@ -57,6 +66,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "nft_accessories"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"listing_nft_accessory",
 	"nft_moment_equipped_accessories",
 	"user_accessories",
 }
@@ -122,6 +132,13 @@ func ByEquippedOnMomentField(field string, opts ...sql.OrderTermOption) OrderOpt
 		sqlgraph.OrderByNeighborTerms(s, newEquippedOnMomentStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByListingField orders the results by listing field.
+func ByListingField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newListingStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newOwnerStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -134,5 +151,12 @@ func newEquippedOnMomentStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(EquippedOnMomentInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, EquippedOnMomentTable, EquippedOnMomentColumn),
+	)
+}
+func newListingStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ListingInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, true, ListingTable, ListingColumn),
 	)
 }

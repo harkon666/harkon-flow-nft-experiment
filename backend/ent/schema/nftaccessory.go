@@ -35,5 +35,9 @@ func (NFTAccessory) Edges() []ent.Edge {
 		edge.From("equipped_on_moment", NFTMoment.Type).
 			Ref("equipped_accessories"). // Merujuk ke edge di NFTMoment
 			Unique(),
+
+		edge.From("listing", Listing.Type).
+			Ref("nft_accessory").
+			Unique(),
 	}
 }

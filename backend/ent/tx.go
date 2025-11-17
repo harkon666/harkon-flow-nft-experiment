@@ -18,6 +18,8 @@ type Tx struct {
 	Event *EventClient
 	// EventPass is the client for interacting with the EventPass builders.
 	EventPass *EventPassClient
+	// Listing is the client for interacting with the Listing builders.
+	Listing *ListingClient
 	// NFTAccessory is the client for interacting with the NFTAccessory builders.
 	NFTAccessory *NFTAccessoryClient
 	// NFTMoment is the client for interacting with the NFTMoment builders.
@@ -158,6 +160,7 @@ func (tx *Tx) init() {
 	tx.Attendance = NewAttendanceClient(tx.config)
 	tx.Event = NewEventClient(tx.config)
 	tx.EventPass = NewEventPassClient(tx.config)
+	tx.Listing = NewListingClient(tx.config)
 	tx.NFTAccessory = NewNFTAccessoryClient(tx.config)
 	tx.NFTMoment = NewNFTMomentClient(tx.config)
 	tx.User = NewUserClient(tx.config)

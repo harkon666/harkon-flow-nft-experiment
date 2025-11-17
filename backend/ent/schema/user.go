@@ -35,15 +35,11 @@ func (User) Fields() []ent.Field {
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Mendefinisikan relasi "one-to-many" (satu-ke-banyak)
-		// Satu User bisa memiliki banyak NFTAccessories
 		edge.To("event_passes", EventPass.Type),
-		// Satu User bisa menghosting banyak Event
 		edge.To("hosted_events", Event.Type),
-
-		// --- Relasi Lama Anda (dari NFTMoment & NFTAccessory) ---
 		edge.To("moments", NFTMoment.Type),
 		edge.To("accessories", NFTAccessory.Type),
 		edge.To("attendances", Attendance.Type),
+		edge.To("listings", Listing.Type),
 	}
 }

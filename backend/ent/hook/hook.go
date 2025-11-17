@@ -44,6 +44,18 @@ func (f EventPassFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EventPassMutation", m)
 }
 
+// The ListingFunc type is an adapter to allow the use of ordinary
+// function as Listing mutator.
+type ListingFunc func(context.Context, *ent.ListingMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ListingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ListingMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ListingMutation", m)
+}
+
 // The NFTAccessoryFunc type is an adapter to allow the use of ordinary
 // function as NFTAccessory mutator.
 type NFTAccessoryFunc func(context.Context, *ent.NFTAccessoryMutation) (ent.Value, error)

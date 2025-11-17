@@ -425,6 +425,29 @@ func HasEquippedOnMomentWith(preds ...predicate.NFTMoment) predicate.NFTAccessor
 	})
 }
 
+// HasListing applies the HasEdge predicate on the "listing" edge.
+func HasListing() predicate.NFTAccessory {
+	return predicate.NFTAccessory(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, ListingTable, ListingColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasListingWith applies the HasEdge predicate on the "listing" edge with a given conditions (other predicates).
+func HasListingWith(preds ...predicate.Listing) predicate.NFTAccessory {
+	return predicate.NFTAccessory(func(s *sql.Selector) {
+		step := newListingStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.NFTAccessory) predicate.NFTAccessory {
 	return predicate.NFTAccessory(sql.AndPredicates(predicates...))

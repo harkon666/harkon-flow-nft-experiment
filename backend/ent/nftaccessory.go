@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"backend/ent/listing"
 	"backend/ent/nftaccessory"
 	"backend/ent/nftmoment"
 	"backend/ent/user"
@@ -31,6 +32,7 @@ type NFTAccessory struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the NFTAccessoryQuery when eager-loading is set.
 	Edges                           NFTAccessoryEdges `json:"edges"`
+	listing_nft_accessory           *int
 	nft_moment_equipped_accessories *int
 	user_accessories                *int
 	selectValues                    sql.SelectValues
@@ -42,9 +44,11 @@ type NFTAccessoryEdges struct {
 	Owner *User `json:"owner,omitempty"`
 	// EquippedOnMoment holds the value of the equipped_on_moment edge.
 	EquippedOnMoment *NFTMoment `json:"equipped_on_moment,omitempty"`
+	// Listing holds the value of the listing edge.
+	Listing *Listing `json:"listing,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // OwnerOrErr returns the Owner value or an error if the edge
@@ -69,6 +73,17 @@ func (e NFTAccessoryEdges) EquippedOnMomentOrErr() (*NFTMoment, error) {
 	return nil, &NotLoadedError{edge: "equipped_on_moment"}
 }
 
+// ListingOrErr returns the Listing value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e NFTAccessoryEdges) ListingOrErr() (*Listing, error) {
+	if e.Listing != nil {
+		return e.Listing, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: listing.Label}
+	}
+	return nil, &NotLoadedError{edge: "listing"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*NFTAccessory) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -78,9 +93,11 @@ func (*NFTAccessory) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case nftaccessory.FieldName, nftaccessory.FieldDescription, nftaccessory.FieldThumbnail, nftaccessory.FieldEquipmentType:
 			values[i] = new(sql.NullString)
-		case nftaccessory.ForeignKeys[0]: // nft_moment_equipped_accessories
+		case nftaccessory.ForeignKeys[0]: // listing_nft_accessory
 			values[i] = new(sql.NullInt64)
-		case nftaccessory.ForeignKeys[1]: // user_accessories
+		case nftaccessory.ForeignKeys[1]: // nft_moment_equipped_accessories
+			values[i] = new(sql.NullInt64)
+		case nftaccessory.ForeignKeys[2]: // user_accessories
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -135,12 +152,19 @@ func (_m *NFTAccessory) assignValues(columns []string, values []any) error {
 			}
 		case nftaccessory.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field listing_nft_accessory", value)
+			} else if value.Valid {
+				_m.listing_nft_accessory = new(int)
+				*_m.listing_nft_accessory = int(value.Int64)
+			}
+		case nftaccessory.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field nft_moment_equipped_accessories", value)
 			} else if value.Valid {
 				_m.nft_moment_equipped_accessories = new(int)
 				*_m.nft_moment_equipped_accessories = int(value.Int64)
 			}
-		case nftaccessory.ForeignKeys[1]:
+		case nftaccessory.ForeignKeys[2]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_accessories", value)
 			} else if value.Valid {
@@ -168,6 +192,11 @@ func (_m *NFTAccessory) QueryOwner() *UserQuery {
 // QueryEquippedOnMoment queries the "equipped_on_moment" edge of the NFTAccessory entity.
 func (_m *NFTAccessory) QueryEquippedOnMoment() *NFTMomentQuery {
 	return NewNFTAccessoryClient(_m.config).QueryEquippedOnMoment(_m)
+}
+
+// QueryListing queries the "listing" edge of the NFTAccessory entity.
+func (_m *NFTAccessory) QueryListing() *ListingQuery {
+	return NewNFTAccessoryClient(_m.config).QueryListing(_m)
 }
 
 // Update returns a builder for updating this NFTAccessory.

@@ -53,9 +53,11 @@ type UserEdges struct {
 	Accessories []*NFTAccessory `json:"accessories,omitempty"`
 	// Attendances holds the value of the attendances edge.
 	Attendances []*Attendance `json:"attendances,omitempty"`
+	// Listings holds the value of the listings edge.
+	Listings []*Listing `json:"listings,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // EventPassesOrErr returns the EventPasses value or an error if the edge
@@ -101,6 +103,15 @@ func (e UserEdges) AttendancesOrErr() ([]*Attendance, error) {
 		return e.Attendances, nil
 	}
 	return nil, &NotLoadedError{edge: "attendances"}
+}
+
+// ListingsOrErr returns the Listings value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ListingsOrErr() ([]*Listing, error) {
+	if e.loadedTypes[5] {
+		return e.Listings, nil
+	}
+	return nil, &NotLoadedError{edge: "listings"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -229,6 +240,11 @@ func (_m *User) QueryAccessories() *NFTAccessoryQuery {
 // QueryAttendances queries the "attendances" edge of the User entity.
 func (_m *User) QueryAttendances() *AttendanceQuery {
 	return NewUserClient(_m.config).QueryAttendances(_m)
+}
+
+// QueryListings queries the "listings" edge of the User entity.
+func (_m *User) QueryListings() *ListingQuery {
+	return NewUserClient(_m.config).QueryListings(_m)
 }
 
 // Update returns a builder for updating this User.

@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"backend/ent/listing"
 	"backend/ent/nftaccessory"
 	"backend/ent/nftmoment"
 	"backend/ent/predicate"
@@ -136,6 +137,25 @@ func (_u *NFTAccessoryUpdate) SetEquippedOnMoment(v *NFTMoment) *NFTAccessoryUpd
 	return _u.SetEquippedOnMomentID(v.ID)
 }
 
+// SetListingID sets the "listing" edge to the Listing entity by ID.
+func (_u *NFTAccessoryUpdate) SetListingID(id int) *NFTAccessoryUpdate {
+	_u.mutation.SetListingID(id)
+	return _u
+}
+
+// SetNillableListingID sets the "listing" edge to the Listing entity by ID if the given value is not nil.
+func (_u *NFTAccessoryUpdate) SetNillableListingID(id *int) *NFTAccessoryUpdate {
+	if id != nil {
+		_u = _u.SetListingID(*id)
+	}
+	return _u
+}
+
+// SetListing sets the "listing" edge to the Listing entity.
+func (_u *NFTAccessoryUpdate) SetListing(v *Listing) *NFTAccessoryUpdate {
+	return _u.SetListingID(v.ID)
+}
+
 // Mutation returns the NFTAccessoryMutation object of the builder.
 func (_u *NFTAccessoryUpdate) Mutation() *NFTAccessoryMutation {
 	return _u.mutation
@@ -150,6 +170,12 @@ func (_u *NFTAccessoryUpdate) ClearOwner() *NFTAccessoryUpdate {
 // ClearEquippedOnMoment clears the "equipped_on_moment" edge to the NFTMoment entity.
 func (_u *NFTAccessoryUpdate) ClearEquippedOnMoment() *NFTAccessoryUpdate {
 	_u.mutation.ClearEquippedOnMoment()
+	return _u
+}
+
+// ClearListing clears the "listing" edge to the Listing entity.
+func (_u *NFTAccessoryUpdate) ClearListing() *NFTAccessoryUpdate {
+	_u.mutation.ClearListing()
 	return _u
 }
 
@@ -269,6 +295,35 @@ func (_u *NFTAccessoryUpdate) sqlSave(ctx context.Context) (_node int, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(nftmoment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ListingCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   nftaccessory.ListingTable,
+			Columns: []string{nftaccessory.ListingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listing.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ListingIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   nftaccessory.ListingTable,
+			Columns: []string{nftaccessory.ListingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listing.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -403,6 +458,25 @@ func (_u *NFTAccessoryUpdateOne) SetEquippedOnMoment(v *NFTMoment) *NFTAccessory
 	return _u.SetEquippedOnMomentID(v.ID)
 }
 
+// SetListingID sets the "listing" edge to the Listing entity by ID.
+func (_u *NFTAccessoryUpdateOne) SetListingID(id int) *NFTAccessoryUpdateOne {
+	_u.mutation.SetListingID(id)
+	return _u
+}
+
+// SetNillableListingID sets the "listing" edge to the Listing entity by ID if the given value is not nil.
+func (_u *NFTAccessoryUpdateOne) SetNillableListingID(id *int) *NFTAccessoryUpdateOne {
+	if id != nil {
+		_u = _u.SetListingID(*id)
+	}
+	return _u
+}
+
+// SetListing sets the "listing" edge to the Listing entity.
+func (_u *NFTAccessoryUpdateOne) SetListing(v *Listing) *NFTAccessoryUpdateOne {
+	return _u.SetListingID(v.ID)
+}
+
 // Mutation returns the NFTAccessoryMutation object of the builder.
 func (_u *NFTAccessoryUpdateOne) Mutation() *NFTAccessoryMutation {
 	return _u.mutation
@@ -417,6 +491,12 @@ func (_u *NFTAccessoryUpdateOne) ClearOwner() *NFTAccessoryUpdateOne {
 // ClearEquippedOnMoment clears the "equipped_on_moment" edge to the NFTMoment entity.
 func (_u *NFTAccessoryUpdateOne) ClearEquippedOnMoment() *NFTAccessoryUpdateOne {
 	_u.mutation.ClearEquippedOnMoment()
+	return _u
+}
+
+// ClearListing clears the "listing" edge to the Listing entity.
+func (_u *NFTAccessoryUpdateOne) ClearListing() *NFTAccessoryUpdateOne {
+	_u.mutation.ClearListing()
 	return _u
 }
 
@@ -566,6 +646,35 @@ func (_u *NFTAccessoryUpdateOne) sqlSave(ctx context.Context) (_node *NFTAccesso
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(nftmoment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ListingCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   nftaccessory.ListingTable,
+			Columns: []string{nftaccessory.ListingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listing.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ListingIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   nftaccessory.ListingTable,
+			Columns: []string{nftaccessory.ListingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listing.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

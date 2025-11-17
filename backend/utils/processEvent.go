@@ -5,6 +5,7 @@ import ( // Dibutuhkan jika Anda akan melakukan operasi DB
 	"backend/ent/attendance"
 	"backend/ent/event"
 	"backend/ent/eventpass"
+	"backend/ent/listing"
 	"backend/ent/nftaccessory"
 	"backend/ent/nftmoment"
 	"backend/ent/user"
@@ -677,4 +678,269 @@ func ProfileUpdated(ctx context.Context, ev flow.Event, client *ent.Client) {
 	} else {
 		log.Printf("Berhasil mengupdate profil untuk user %s", userAddress)
 	}
+}
+
+func ListingAvailable(ctx context.Context, ev flow.Event, client *ent.Client) {
+	log.Println("Memproses event ListingAvailable...")
+
+	// --- 1. Parsing Event ---
+	var Fields = ev.Value.FieldsMappedByName()
+
+	// Ambil semua field yang diperlukan (kita akan parse Tipe secara manual)
+	listingIDCadence, err := getCadenceField[cadence.UInt64](Fields, "listingResourceID")
+	if err != nil {
+		log.Println("Gagal parsing 'listingResourceID':", err)
+		return
+	}
+	nftIDCadence, err := getCadenceField[cadence.UInt64](Fields, "nftID")
+	if err != nil {
+		log.Println("Gagal parsing 'nftID':", err)
+		return
+	}
+	sellerAddressCadence, err := getCadenceField[cadence.Address](Fields, "storefrontAddress")
+	if err != nil {
+		log.Println("Gagal parsing 'storefrontAddress':", err)
+		return
+	}
+	priceCadence, _ := getCadenceField[cadence.UFix64](Fields, "salePrice")
+	expiryCadence, _ := getCadenceField[cadence.UInt64](Fields, "expiry")
+
+	// --- PERUBAHAN DI SINI: Ambil 'Type' sebagai String ---
+	// Ambil field 'type' sebagai 'cadence.Value' mentah
+	nftTypeField, ok := Fields["nftType"]
+	if !ok {
+		log.Println("Gagal parsing 'nftType': field tidak ada")
+		return
+	}
+	// Panggil .String() di atasnya
+	nftType := nftTypeField.String()
+
+	vaultTypeField, ok := Fields["salePaymentVaultType"]
+	if !ok {
+		log.Println("Gagal parsing 'salePaymentVaultType': field tidak ada")
+		return
+	}
+	// Panggil .String() di atasnya
+	vaultType := vaultTypeField.String()
+	// --- AKHIR PERUBAHAN ---
+
+	// --- 2. Konversi Tipe Go ---
+	listingID := uint64(listingIDCadence)
+	nftID := uint64(nftIDCadence)
+	sellerAddress := sellerAddressCadence.String()
+
+	price, _ := strconv.ParseFloat(priceCadence.String(), 64)
+	expiryTime := time.Unix(int64(expiryCadence), 0)
+
+	// --- 3. Cek Duplikat ---
+	// (Kode 'Cek Duplikat' Anda tetap sama)
+	_, err = client.Listing.Query().
+		Where(listing.ListingIDEQ(listingID)).
+		Only(ctx)
+	if err == nil {
+		log.Printf("Listing ID %d sudah ada di database, dilewati.", listingID)
+		return
+	}
+	if !ent.IsNotFound(err) {
+		log.Printf("Error saat query Listing %d: %v", listingID, err)
+		return
+	}
+
+	// --- 4. Dapatkan Relasi (Seller & NFT) ---
+
+	// Dapatkan 'User' (Penjual)
+	sellerUser, err := client.User.Query().Where(user.AddressEQ(sellerAddress)).Only(ctx)
+	if err != nil {
+		log.Printf("Gagal menemukan User (Penjual) %s: %v", sellerAddress, err)
+		return
+	}
+
+	// --- PERUBAHAN DI SINI: Validasi Tipe NFT menggunakan 'strings.Contains' ---
+	// (Ganti 'f8d...' dengan alamat Anda jika berbeda,
+	//  tapi sebaiknya cek nama unik kontraknya saja)
+	if !strings.Contains(nftType, ".NFTAccessory.") {
+		log.Printf("Tipe NFT %s bukan 'NFTAccessory', dilewati.", nftType)
+		return
+	}
+	// --- AKHIR PERUBAHAN ---
+
+	nft, err := client.NFTAccessory.Query().Where(nftaccessory.NftIDEQ(nftID)).Only(ctx)
+	if err != nil {
+		log.Printf("Gagal menemukan NFTAccessory (ID: %d) di DB: %v", nftID, err)
+		return
+	}
+
+	// --- 5. Buat 'Listing' Baru ---
+	// (Kode 'Create' Anda tetap sama)
+	newListing, createErr := client.Listing.Create().
+		SetListingID(listingID).
+		SetPrice(price).
+		SetExpiry(expiryTime).
+		SetPaymentVaultType(vaultType). // Simpan string tipe vault
+		SetSeller(sellerUser).
+		SetNftAccessory(nft).
+		Save(ctx)
+
+	if createErr != nil {
+		log.Printf("Gagal menyimpan 'Listing' baru (ID: %d): %v", listingID, createErr)
+	} else {
+		log.Printf("Berhasil mengindeks 'Listing' baru (ID: %d) untuk NFT %d", newListing.ListingID, nft.NftID)
+	}
+}
+
+func ListingCompleted(ctx context.Context, ev flow.Event, client *ent.Client) {
+	log.Println("Memproses event ListingCompleted...")
+
+	// --- 1. Parsing Event ---
+	var Fields = ev.Value.FieldsMappedByName()
+
+	// Ambil 'listingResourceID'
+	listingIDCadence, err := getCadenceField[cadence.UInt64](Fields, "listingResourceID")
+	if err != nil {
+		log.Println("Gagal parsing 'listingResourceID':", err)
+		return
+	}
+
+	// Ambil 'purchased'
+	purchasedCadence, err := getCadenceField[cadence.Bool](Fields, "purchased")
+	if err != nil {
+		log.Println("Gagal parsing 'purchased':", err)
+		return
+	}
+
+	// --- 2. Konversi Tipe Go ---
+	listingID := uint64(listingIDCadence)
+	wasPurchased := bool(purchasedCadence)
+
+	// --- 3. Logika Bisnis ---
+
+	// 'ListingCompleted' juga di-emit saat 'unlist' (membatalkan penjualan)
+	// Kita hanya peduli jika 'purchased' adalah 'true'
+	if !wasPurchased {
+		log.Printf("Listing ID %d di-unlist (tidak dibeli), mengabaikan penghapusan.", listingID)
+		// (Anda mungkin ingin 'handler' terpisah untuk 'unlist'
+		//  jika Anda perlu memperbarui 'isListed' flag)
+		return
+	}
+
+	// 4. Temukan 'Listing' di DB
+	// (Ini menggunakan 'ListingIDEQ' dari skema 'Listing' Anda)
+	listingRecord, err := client.Listing.Query().
+		Where(listing.ListingIDEQ(listingID)).
+		Only(ctx)
+
+	if err != nil {
+		if ent.IsNotFound(err) {
+			log.Printf("Listing ID %d sudah dihapus, dilewati.", listingID)
+		} else {
+			log.Printf("Error query 'Listing' %d: %v", listingID, err)
+		}
+		return
+	}
+
+	// 5. HAPUS 'Listing' dari database
+	err = client.Listing.DeleteOne(listingRecord).Exec(ctx)
+	if err != nil {
+		log.Printf("Gagal menghapus 'Listing' ID %d: %v", listingID, err)
+	} else {
+		log.Printf("Berhasil menghapus 'Listing' ID %d (terjual).", listingID)
+	}
+}
+
+func NFTDeposited(ctx context.Context, ev flow.Event, client *ent.Client) {
+	log.Println("Memproses event NonFungibleToken.Deposited...")
+
+	// --- 1. Parsing Event ---
+	var Fields = ev.Value.FieldsMappedByName()
+
+	// Ambil ID NFT
+	nftIDCadence, err := getCadenceField[cadence.UInt64](Fields, "id")
+	if err != nil {
+		log.Println("Gagal parsing 'id' (NFT ID):", err)
+		return
+	}
+
+	// Ambil 'to' (Pemilik Baru)
+	// Ini adalah opsional ((Address)?)
+	recipientOptional, err := getCadenceField[cadence.Optional](Fields, "to")
+	if err != nil || recipientOptional.Value == nil {
+		log.Println("Gagal parsing 'to' (Recipient Address), atau 'to' adalah nil:", err)
+		return // Kita tidak bisa update owner jika tidak tahu siapa 'to'
+	}
+	recipientAddressCadence := recipientOptional.Value.(cadence.Address)
+
+	// Ambil Tipe NFT
+	nftTypeField, ok := Fields["type"]
+	if !ok {
+		log.Println("Gagal parsing 'type' (NFT Type)")
+		return
+	}
+	nftType := nftTypeField.String()
+
+	// --- 2. Konversi Tipe Go ---
+	nftID := uint64(nftIDCadence)
+	newOwnerAddress := recipientAddressCadence.String()
+
+	// --- 3. Dapatkan 'User' (Pemilik Baru) ---
+	// Gunakan pola Get-or-Create
+	newOwner, err := client.User.Query().Where(user.AddressEQ(newOwnerAddress)).Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			log.Printf("Pemilik baru %s tidak ditemukan, membuat user baru...", newOwnerAddress)
+			newOwner, err = client.User.Create().SetAddress(newOwnerAddress).Save(ctx)
+			if err != nil {
+				log.Printf("Gagal membuat user baru %s: %v", newOwnerAddress, err)
+				return
+			}
+		} else {
+			log.Printf("Error query user %s: %v", newOwnerAddress, err)
+			return
+		}
+	}
+
+	// --- 4. Tentukan Tipe NFT & Update Owner ---
+
+	// Cek apakah ini 'NFTAccessory'
+	if strings.Contains(nftType, ".NFTAccessory.") {
+
+		// Temukan Aksesori di DB
+		accessory, err := client.NFTAccessory.Query().
+			Where(nftaccessory.NftIDEQ(nftID)).
+			Only(ctx)
+
+		if err != nil {
+			log.Printf("NFTAccessory ID %d tidak ditemukan di DB (mungkin ini mint?): %v", nftID, err)
+			return // Minting harus ditangani oleh event 'Minted' Anda
+		}
+
+		// Update Owner
+		_, err = accessory.Update().SetOwner(newOwner).Save(ctx)
+		if err != nil {
+			log.Printf("Gagal update owner untuk NFTAccessory %d: %v", nftID, err)
+		} else {
+			log.Printf("Berhasil transfer NFTAccessory %d ke %s", nftID, newOwnerAddress)
+		}
+
+		// Cek apakah ini 'NFTMoment'
+	} else if strings.Contains(nftType, ".NFTMoment.") {
+
+		// Temukan Momen di DB
+		moment, err := client.NFTMoment.Query().
+			Where(nftmoment.NftIDEQ(nftID)).
+			Only(ctx)
+
+		if err != nil {
+			log.Printf("NFTMoment ID %d tidak ditemukan di DB (mungkin ini mint?): %v", nftID, err)
+			return
+		}
+
+		// Update Owner
+		_, err = moment.Update().SetOwner(newOwner).Save(ctx)
+		if err != nil {
+			log.Printf("Gagal update owner untuk NFTMoment %d: %v", nftID, err)
+		} else {
+			log.Printf("Berhasil transfer NFTMoment %d ke %s", nftID, newOwnerAddress)
+		}
+	}
+	// (Abaikan jika bukan tipe NFT yang kita pedulikan)
 }

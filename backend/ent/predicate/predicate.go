@@ -15,6 +15,9 @@ type Event func(*sql.Selector)
 // EventPass is the predicate function for eventpass builders.
 type EventPass func(*sql.Selector)
 
+// Listing is the predicate function for listing builders.
+type Listing func(*sql.Selector)
+
 // NFTAccessory is the predicate function for nftaccessory builders.
 type NFTAccessory func(*sql.Selector)
 

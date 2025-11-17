@@ -714,6 +714,29 @@ func HasAttendancesWith(preds ...predicate.Attendance) predicate.User {
 	})
 }
 
+// HasListings applies the HasEdge predicate on the "listings" edge.
+func HasListings() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ListingsTable, ListingsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasListingsWith applies the HasEdge predicate on the "listings" edge with a given conditions (other predicates).
+func HasListingsWith(preds ...predicate.Listing) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newListingsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(sql.AndPredicates(predicates...))

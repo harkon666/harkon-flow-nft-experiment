@@ -6,6 +6,7 @@ import (
 	"backend/ent/attendance"
 	"backend/ent/event"
 	"backend/ent/eventpass"
+	"backend/ent/listing"
 	"backend/ent/nftaccessory"
 	"backend/ent/nftmoment"
 	"backend/ent/user"
@@ -81,6 +82,7 @@ func checkColumn(t, c string) error {
 			attendance.Table:   attendance.ValidColumn,
 			event.Table:        event.ValidColumn,
 			eventpass.Table:    eventpass.ValidColumn,
+			listing.Table:      listing.ValidColumn,
 			nftaccessory.Table: nftaccessory.ValidColumn,
 			nftmoment.Table:    nftmoment.ValidColumn,
 			user.Table:         user.ValidColumn,

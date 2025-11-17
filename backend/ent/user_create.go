@@ -6,6 +6,7 @@ import (
 	"backend/ent/attendance"
 	"backend/ent/event"
 	"backend/ent/eventpass"
+	"backend/ent/listing"
 	"backend/ent/nftaccessory"
 	"backend/ent/nftmoment"
 	"backend/ent/user"
@@ -201,6 +202,21 @@ func (_c *UserCreate) AddAttendances(v ...*Attendance) *UserCreate {
 	return _c.AddAttendanceIDs(ids...)
 }
 
+// AddListingIDs adds the "listings" edge to the Listing entity by IDs.
+func (_c *UserCreate) AddListingIDs(ids ...int) *UserCreate {
+	_c.mutation.AddListingIDs(ids...)
+	return _c
+}
+
+// AddListings adds the "listings" edges to the Listing entity.
+func (_c *UserCreate) AddListings(v ...*Listing) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddListingIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_c *UserCreate) Mutation() *UserMutation {
 	return _c.mutation
@@ -373,6 +389,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(attendance.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ListingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ListingsTable,
+			Columns: []string{user.ListingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(listing.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

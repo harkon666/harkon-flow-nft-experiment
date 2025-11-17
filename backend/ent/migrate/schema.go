@@ -98,6 +98,30 @@ var (
 			},
 		},
 	}
+	// ListingsColumns holds the columns for the "listings" table.
+	ListingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "listing_id", Type: field.TypeUint64, Unique: true},
+		{Name: "price", Type: field.TypeFloat64},
+		{Name: "payment_vault_type", Type: field.TypeString},
+		{Name: "custom_id", Type: field.TypeString, Nullable: true},
+		{Name: "expiry", Type: field.TypeTime},
+		{Name: "user_listings", Type: field.TypeInt},
+	}
+	// ListingsTable holds the schema information for the "listings" table.
+	ListingsTable = &schema.Table{
+		Name:       "listings",
+		Columns:    ListingsColumns,
+		PrimaryKey: []*schema.Column{ListingsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "listings_users_listings",
+				Columns:    []*schema.Column{ListingsColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// NftAccessoriesColumns holds the columns for the "nft_accessories" table.
 	NftAccessoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -106,6 +130,7 @@ var (
 		{Name: "description", Type: field.TypeString},
 		{Name: "thumbnail", Type: field.TypeString},
 		{Name: "equipment_type", Type: field.TypeString},
+		{Name: "listing_nft_accessory", Type: field.TypeInt, Unique: true, Nullable: true},
 		{Name: "nft_moment_equipped_accessories", Type: field.TypeInt, Nullable: true},
 		{Name: "user_accessories", Type: field.TypeInt},
 	}
@@ -116,14 +141,20 @@ var (
 		PrimaryKey: []*schema.Column{NftAccessoriesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "nft_accessories_nft_moments_equipped_accessories",
+				Symbol:     "nft_accessories_listings_nft_accessory",
 				Columns:    []*schema.Column{NftAccessoriesColumns[6]},
+				RefColumns: []*schema.Column{ListingsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "nft_accessories_nft_moments_equipped_accessories",
+				Columns:    []*schema.Column{NftAccessoriesColumns[7]},
 				RefColumns: []*schema.Column{NftMomentsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "nft_accessories_users_accessories",
-				Columns:    []*schema.Column{NftAccessoriesColumns[7]},
+				Columns:    []*schema.Column{NftAccessoriesColumns[8]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -183,6 +214,7 @@ var (
 		AttendancesTable,
 		EventsTable,
 		EventPassesTable,
+		ListingsTable,
 		NftAccessoriesTable,
 		NftMomentsTable,
 		UsersTable,
@@ -195,8 +227,10 @@ func init() {
 	EventsTable.ForeignKeys[0].RefTable = UsersTable
 	EventPassesTable.ForeignKeys[0].RefTable = EventsTable
 	EventPassesTable.ForeignKeys[1].RefTable = UsersTable
-	NftAccessoriesTable.ForeignKeys[0].RefTable = NftMomentsTable
-	NftAccessoriesTable.ForeignKeys[1].RefTable = UsersTable
+	ListingsTable.ForeignKeys[0].RefTable = UsersTable
+	NftAccessoriesTable.ForeignKeys[0].RefTable = ListingsTable
+	NftAccessoriesTable.ForeignKeys[1].RefTable = NftMomentsTable
+	NftAccessoriesTable.ForeignKeys[2].RefTable = UsersTable
 	NftMomentsTable.ForeignKeys[0].RefTable = EventPassesTable
 	NftMomentsTable.ForeignKeys[1].RefTable = UsersTable
 }

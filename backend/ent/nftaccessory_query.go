@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"backend/ent/listing"
 	"backend/ent/nftaccessory"
 	"backend/ent/nftmoment"
 	"backend/ent/predicate"
@@ -26,6 +27,7 @@ type NFTAccessoryQuery struct {
 	predicates           []predicate.NFTAccessory
 	withOwner            *UserQuery
 	withEquippedOnMoment *NFTMomentQuery
+	withListing          *ListingQuery
 	withFKs              bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -100,6 +102,28 @@ func (_q *NFTAccessoryQuery) QueryEquippedOnMoment() *NFTMomentQuery {
 			sqlgraph.From(nftaccessory.Table, nftaccessory.FieldID, selector),
 			sqlgraph.To(nftmoment.Table, nftmoment.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, nftaccessory.EquippedOnMomentTable, nftaccessory.EquippedOnMomentColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryListing chains the current query on the "listing" edge.
+func (_q *NFTAccessoryQuery) QueryListing() *ListingQuery {
+	query := (&ListingClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(nftaccessory.Table, nftaccessory.FieldID, selector),
+			sqlgraph.To(listing.Table, listing.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, nftaccessory.ListingTable, nftaccessory.ListingColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -301,6 +325,7 @@ func (_q *NFTAccessoryQuery) Clone() *NFTAccessoryQuery {
 		predicates:           append([]predicate.NFTAccessory{}, _q.predicates...),
 		withOwner:            _q.withOwner.Clone(),
 		withEquippedOnMoment: _q.withEquippedOnMoment.Clone(),
+		withListing:          _q.withListing.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -326,6 +351,17 @@ func (_q *NFTAccessoryQuery) WithEquippedOnMoment(opts ...func(*NFTMomentQuery))
 		opt(query)
 	}
 	_q.withEquippedOnMoment = query
+	return _q
+}
+
+// WithListing tells the query-builder to eager-load the nodes that are connected to
+// the "listing" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *NFTAccessoryQuery) WithListing(opts ...func(*ListingQuery)) *NFTAccessoryQuery {
+	query := (&ListingClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withListing = query
 	return _q
 }
 
@@ -408,12 +444,13 @@ func (_q *NFTAccessoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		nodes       = []*NFTAccessory{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withOwner != nil,
 			_q.withEquippedOnMoment != nil,
+			_q.withListing != nil,
 		}
 	)
-	if _q.withOwner != nil || _q.withEquippedOnMoment != nil {
+	if _q.withOwner != nil || _q.withEquippedOnMoment != nil || _q.withListing != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -446,6 +483,12 @@ func (_q *NFTAccessoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	if query := _q.withEquippedOnMoment; query != nil {
 		if err := _q.loadEquippedOnMoment(ctx, query, nodes, nil,
 			func(n *NFTAccessory, e *NFTMoment) { n.Edges.EquippedOnMoment = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withListing; query != nil {
+		if err := _q.loadListing(ctx, query, nodes, nil,
+			func(n *NFTAccessory, e *Listing) { n.Edges.Listing = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -509,6 +552,38 @@ func (_q *NFTAccessoryQuery) loadEquippedOnMoment(ctx context.Context, query *NF
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "nft_moment_equipped_accessories" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *NFTAccessoryQuery) loadListing(ctx context.Context, query *ListingQuery, nodes []*NFTAccessory, init func(*NFTAccessory), assign func(*NFTAccessory, *Listing)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*NFTAccessory)
+	for i := range nodes {
+		if nodes[i].listing_nft_accessory == nil {
+			continue
+		}
+		fk := *nodes[i].listing_nft_accessory
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(listing.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "listing_nft_accessory" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

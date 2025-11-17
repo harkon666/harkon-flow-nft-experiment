@@ -40,6 +40,8 @@ const (
 	EdgeAccessories = "accessories"
 	// EdgeAttendances holds the string denoting the attendances edge name in mutations.
 	EdgeAttendances = "attendances"
+	// EdgeListings holds the string denoting the listings edge name in mutations.
+	EdgeListings = "listings"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// EventPassesTable is the table that holds the event_passes relation/edge.
@@ -77,6 +79,13 @@ const (
 	AttendancesInverseTable = "attendances"
 	// AttendancesColumn is the table column denoting the attendances relation/edge.
 	AttendancesColumn = "user_attendances"
+	// ListingsTable is the table that holds the listings relation/edge.
+	ListingsTable = "listings"
+	// ListingsInverseTable is the table name for the Listing entity.
+	// It exists in this package in order to avoid circular dependency with the "listing" package.
+	ListingsInverseTable = "listings"
+	// ListingsColumn is the table column denoting the listings relation/edge.
+	ListingsColumn = "user_listings"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -215,6 +224,20 @@ func ByAttendances(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAttendancesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByListingsCount orders the results by listings count.
+func ByListingsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newListingsStep(), opts...)
+	}
+}
+
+// ByListings orders the results by listings terms.
+func ByListings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newListingsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newEventPassesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -248,5 +271,12 @@ func newAttendancesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AttendancesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AttendancesTable, AttendancesColumn),
+	)
+}
+func newListingsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ListingsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ListingsTable, ListingsColumn),
 	)
 }

@@ -33,6 +33,9 @@ var (
 	UserRegisteredEvent            = "A.f8d6e0586b0a20c7.EventManager.UserRegistered"
 	UserCheckedInEvent             = "A.f8d6e0586b0a20c7.EventManager.UserCheckedIn"
 	EventPassMinted                = "A.f8d6e0586b0a20c7.EventPass.Minted"
+	ListingAvailable               = "A.f8d6e0586b0a20c7.NFTStorefrontV2.ListingAvailable"
+	ListingCompleted               = "A.f8d6e0586b0a20c7.NFTStorefrontV2.ListingCompleted"
+	NFTDeposited                   = "A.f8d6e0586b0a20c7.NonFungibleToken.Deposited"
 )
 
 func main() {
@@ -71,7 +74,7 @@ func main() {
 			EventTypes: []string{
 				NFTMomentMinted, NFTAccessoryMinted, NFTMomentEquipAccessory, NFTMomentUnequipAccessory,
 				FlowCapabilityControllerIssued, EventCreated, UserRegisteredEvent, UserCheckedInEvent,
-				EventPassMinted, ProfileUpdated,
+				EventPassMinted, ProfileUpdated, ListingAvailable, NFTDeposited, ListingCompleted,
 			},
 		},
 	)
@@ -113,6 +116,12 @@ func main() {
 					utils.EventPassMinted(ctx, ev, client)
 				case ProfileUpdated:
 					utils.ProfileUpdated(ctx, ev, client)
+				case ListingAvailable:
+					utils.ListingAvailable(ctx, ev, client)
+				case ListingCompleted:
+					utils.ListingCompleted(ctx, ev, client)
+				case NFTDeposited:
+					utils.NFTDeposited(ctx, ev, client)
 				}
 			}
 		case err := <-errCh:

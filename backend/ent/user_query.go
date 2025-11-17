@@ -6,6 +6,7 @@ import (
 	"backend/ent/attendance"
 	"backend/ent/event"
 	"backend/ent/eventpass"
+	"backend/ent/listing"
 	"backend/ent/nftaccessory"
 	"backend/ent/nftmoment"
 	"backend/ent/predicate"
@@ -33,6 +34,7 @@ type UserQuery struct {
 	withMoments      *NFTMomentQuery
 	withAccessories  *NFTAccessoryQuery
 	withAttendances  *AttendanceQuery
+	withListings     *ListingQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -172,6 +174,28 @@ func (_q *UserQuery) QueryAttendances() *AttendanceQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(attendance.Table, attendance.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.AttendancesTable, user.AttendancesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryListings chains the current query on the "listings" edge.
+func (_q *UserQuery) QueryListings() *ListingQuery {
+	query := (&ListingClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(listing.Table, listing.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ListingsTable, user.ListingsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -376,6 +400,7 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withMoments:      _q.withMoments.Clone(),
 		withAccessories:  _q.withAccessories.Clone(),
 		withAttendances:  _q.withAttendances.Clone(),
+		withListings:     _q.withListings.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -434,6 +459,17 @@ func (_q *UserQuery) WithAttendances(opts ...func(*AttendanceQuery)) *UserQuery 
 		opt(query)
 	}
 	_q.withAttendances = query
+	return _q
+}
+
+// WithListings tells the query-builder to eager-load the nodes that are connected to
+// the "listings" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithListings(opts ...func(*ListingQuery)) *UserQuery {
+	query := (&ListingClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withListings = query
 	return _q
 }
 
@@ -515,12 +551,13 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			_q.withEventPasses != nil,
 			_q.withHostedEvents != nil,
 			_q.withMoments != nil,
 			_q.withAccessories != nil,
 			_q.withAttendances != nil,
+			_q.withListings != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -573,6 +610,13 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := _q.loadAttendances(ctx, query, nodes,
 			func(n *User) { n.Edges.Attendances = []*Attendance{} },
 			func(n *User, e *Attendance) { n.Edges.Attendances = append(n.Edges.Attendances, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withListings; query != nil {
+		if err := _q.loadListings(ctx, query, nodes,
+			func(n *User) { n.Edges.Listings = []*Listing{} },
+			func(n *User, e *Listing) { n.Edges.Listings = append(n.Edges.Listings, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -729,6 +773,37 @@ func (_q *UserQuery) loadAttendances(ctx context.Context, query *AttendanceQuery
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_attendances" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadListings(ctx context.Context, query *ListingQuery, nodes []*User, init func(*User), assign func(*User, *Listing)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Listing(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.ListingsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_listings
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_listings" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_listings" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
