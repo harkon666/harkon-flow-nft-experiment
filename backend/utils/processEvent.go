@@ -81,13 +81,12 @@ func convertCadenceArrayToUint64Slice(arr cadence.Array) []uint64 {
 }
 
 func HandleCapabilityIssued(ctx context.Context, ev flow.Event, client *ent.Client) {
-	log.Println("Memproses event StorageCapabilityControllerIssued...")
 
 	// Dapatkan semua field dari event
 	Fields := ev.Value.FieldsMappedByName()
 	cadenceTypeString := Fields["type"].String()
 
-	if !strings.Contains(cadenceTypeString, "A.f8d6e0586b0a20c7.UserProfile.Profile") {
+	if !strings.Contains(cadenceTypeString, "&A.1bb6b1e0a5170088.UserProfile.Profile") {
 		return
 	}
 
@@ -886,12 +885,7 @@ func NFTDeposited(ctx context.Context, ev flow.Event, client *ent.Client) {
 	newOwner, err := client.User.Query().Where(user.AddressEQ(newOwnerAddress)).Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			log.Printf("Pemilik baru %s tidak ditemukan, membuat user baru...", newOwnerAddress)
-			newOwner, err = client.User.Create().SetAddress(newOwnerAddress).Save(ctx)
-			if err != nil {
-				log.Printf("Gagal membuat user baru %s: %v", newOwnerAddress, err)
-				return
-			}
+			log.Printf("Pemilik baru %s tidak ditemukan")
 		} else {
 			log.Printf("Error query user %s: %v", newOwnerAddress, err)
 			return

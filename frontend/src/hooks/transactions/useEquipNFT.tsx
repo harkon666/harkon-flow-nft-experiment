@@ -35,8 +35,8 @@ const EQUIP_NFT_TRANSACTION = `
         self.frameNFT <- withdrawRef.withdraw(withdrawID: nftAccessoryId) as! @NFTAccessory.NFT
 
         assert(
-          self.frameNFT.getType().identifier == "A.f8d6e0586b0a20c7.NFTAccessory.NFT",
-          message: "The NFT that was withdrawn to transfer is not the type that was requested <A.f8d6e0586b0a20c7.NFTAccessory.NFT>."
+          self.frameNFT.getType().identifier == "A.1bb6b1e0a5170088.NFTAccessory.NFT",
+          message: "The NFT that was withdrawn to transfer is not the type that was requested <A.1bb6b1e0a5170088.NFTAccessory.NFT>."
         )
       }
 

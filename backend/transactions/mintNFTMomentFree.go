@@ -90,7 +90,7 @@ func FreeMintNFTMoment(
 	var flowClient access.Client
 
 	// Koneksi Flow ke Emulator HTTP port
-	flowClient, err = http.NewClient(http.EmulatorHost)
+	flowClient, err = http.NewClient(http.TestnetHost)
 	if err != nil {
 		return fmt.Errorf("gagal membuat flow client: %w", err)
 	}
