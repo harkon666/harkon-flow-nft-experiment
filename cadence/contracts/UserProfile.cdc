@@ -18,8 +18,10 @@ access(all) contract UserProfile {
       highlightedEventPassIds: [UInt64?],
       highlightedMomentID: UInt64?
     )
-    // access(all) event HighlightedEventPassUpdated(address: Address, highlightedEventPassIds: [UInt64?])
-    // access(all) event HighlightedMomentUpdated(address: Address, highlightedMomentID: UInt64?)
+
+    access(all) event UserVerified(
+      address: Address
+    )
 
     access(all) entitlement Edit 
 
@@ -130,27 +132,6 @@ access(all) contract UserProfile {
           )
         }
 
-        //pass nil to eventPassCollection for remove all highlightedEventPassIds
-        access(Edit) fun updateHighlightedEventPass(highlightedEventPassIds: [UInt64?], eventPassCollection: &EventPass.Collection?) {
-          if eventPassCollection == nil {
-            self.highlightedEventPassIds = []
-          } else {
-            assert(eventPassCollection!.owner!.address == self.owner!.address, message: "You are not own this Event Pass Collection")
-            for eventPassIds in highlightedEventPassIds {
-              assert(eventPassCollection!.borrowNFT(eventPassIds!) != nil, message: "Invalid EventPass ID")
-            }
-
-            self.highlightedEventPassIds = highlightedEventPassIds
-          }
-        }
-
-        access(Edit) fun updateHighlightedMoment(momentRef: &NFTMoment.NFT?) {
-          if momentRef != nil {
-            assert(momentRef!.owner!.address == self.owner!.address, message: "You are not own this Moment NFT")
-          }
-          self.highlightedMomentID = momentRef?.id
-        }
-
         access(contract) fun verified() {
           self.isVerified = true
         }
@@ -177,6 +158,7 @@ access(all) contract UserProfile {
     access(all) resource Verifier {
       access(all) fun verifyUser(userProfileRef: &UserProfile.Profile) {
         userProfileRef.verified()
+        emit UserVerified(address: userProfileRef.owner!.address)
       }
     }
 
