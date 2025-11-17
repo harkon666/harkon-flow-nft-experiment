@@ -149,6 +149,13 @@
 				"type": "file",
 				"location": "emulator-account.pkey"
 			}
+		},
+		"puki1": {
+			"address": "1bb6b1e0a5170088",
+			"key": {
+				"type": "file",
+				"location": "puki1.pkey"
+			}
 		}
 	},
 	"deployments": {
@@ -170,6 +177,26 @@
 				"NFTMoment",
 				"NFTStorefrontV2",
 				"FungibleTokenMetadataViews"
+			]
+		},
+		"testnet": {
+			"puki1": [
+				"AccessoryPack",
+				"EventManager",
+				"EventPass",
+				"NFTAccessory",
+				"NFTMoment",
+				"UserProfile",
+				"FungibleToken",
+				"FungibleTokenMetadataViews",
+				"NonFungibleToken",
+				"RandomBeaconHistory",
+				"ViewResolver",
+				"Burner",
+				"MetadataViews",
+				"NFTStorefrontV2",
+				"RandomConsumer",
+				"Xorshift128plus"
 			]
 		}
 	}
